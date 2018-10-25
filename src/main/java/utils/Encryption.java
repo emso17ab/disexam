@@ -9,7 +9,7 @@ public final class Encryption {
 
       // The key is predefined and hidden in code
       // TODO: Create a more complex code and store it somewhere better
-      char[] key = {'C', 'B', 'S'};
+      char[] key = {'6', 'U', 'L', '$', '0', '9'};
 
       // Stringbuilder enables you to play around with strings and make useful stuff
       StringBuilder thisIsEncrypted = new StringBuilder();
@@ -18,6 +18,8 @@ public final class Encryption {
       for (int i = 0; i < rawString.length(); i++) {
         thisIsEncrypted.append((char) (rawString.charAt(i) ^ key[i % key.length]));
       }
+
+      //TODO FIX
 
       // We return the encrypted string
       return thisIsEncrypted.toString();
