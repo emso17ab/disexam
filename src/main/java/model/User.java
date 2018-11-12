@@ -8,13 +8,23 @@ public class User {
   public String email;
   private String password;
   private long createdTime;
+  private String salt;
 
-  public User(int id, String firstname, String lastname, String password, String email) {
+  public String getSalt() {
+    return salt;
+  }
+
+  public void setSalt(String salt) {
+    this.salt = salt;
+  }
+
+  public User(int id, String firstname, String lastname, String password, String email, String salt) {
     this.id = id;
     this.firstname = firstname;
     this.lastname = lastname;
     this.password = password;
     this.email = email;
+    this.salt = salt;
   }
 
   public int getId() {

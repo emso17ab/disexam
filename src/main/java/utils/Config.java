@@ -9,6 +9,11 @@ import java.io.InputStreamReader;
 
 public final class Config {
 
+  private static String SSH_TUNNEL_HOST;
+  private static int SSH_TUNNEL_PORT;
+  private static String SSH_TUNNEL_USERNAME;
+  private static String SSH_TUNNEL_PASSWORD;
+  private static int SSH_TUNNEL_REMOTEPORT;
   private static String DATABASE_HOST;
   private static int DATABASE_PORT;
   private static String DATABASE_USERNAME;
@@ -20,6 +25,26 @@ public final class Config {
   private static String SOLR_PATH;
   private static String SOLR_CORE;
   private static long PRODUCT_TTL;
+
+  public static String getSshTunnelHost() {
+    return SSH_TUNNEL_HOST;
+  }
+
+  public static int getSshTunnelPort() {
+    return SSH_TUNNEL_PORT;
+  }
+
+  public static String getSshTunnelUsername() {
+    return SSH_TUNNEL_USERNAME;
+  }
+
+  public static String getSshTunnelPassword() {
+    return SSH_TUNNEL_PASSWORD;
+  }
+
+  public static int getSshTunnelRemoteport() {
+    return SSH_TUNNEL_REMOTEPORT;
+  }
 
   public static long getProductTtl() {
     return PRODUCT_TTL;
@@ -65,6 +90,8 @@ public final class Config {
     return SOLR_CORE;
   }
 
+
+
   public static void initializeConfig() throws IOException {
 
     // Init variables to parse JSON
@@ -88,6 +115,11 @@ public final class Config {
     json = (JsonObject) parser.parse(stringBuffer.toString());
 
     // Hiv teksten ud og sæt klassens variable til senere brug
+    SSH_TUNNEL_HOST = json.get("SSH_TUNNEL_HOST").toString().replace("\"","");
+    SSH_TUNNEL_PORT = Integer.parseInt(json.get("SSH_TUNNEL_PORT").toString().replace("\"",""));
+    SSH_TUNNEL_USERNAME = json.get("SSH_TUNNEL_USERNAME").toString().replace("\"","");
+    SSH_TUNNEL_PASSWORD = json.get("SSH_TUNNEL_PASSWORD").toString().replace("\"","");
+    SSH_TUNNEL_REMOTEPORT = Integer.parseInt(json.get("SSH_TUNNEL_REMOTEPORT").toString().replace("\"",""));
     DATABASE_HOST = json.get("DATABASE_HOST").toString().replace("\"", "");
     DATABASE_PORT = Integer.parseInt(json.get("DATABASE_PORT").toString().replace("\"", ""));
     DATABASE_USERNAME = json.get("DATABASE_USERNAME").toString().replace("\"", "");

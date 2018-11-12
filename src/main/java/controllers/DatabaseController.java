@@ -6,13 +6,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 import utils.Config;
 
 public class DatabaseController {
 
   private static Connection connection;
+  private static Session session;
 
   public DatabaseController() {
+    session = getSession();
     connection = getConnection();
   }
 
@@ -47,6 +52,36 @@ public class DatabaseController {
     }
 
     return connection;
+  }
+
+  public static Session getSession() {
+    try {
+      //Set connection credentials
+      String host = Config.getSshTunnelHost();
+      String user = Config.getSshTunnelUsername();
+      String password = Config.getSshTunnelPassword();
+      int port = Config.getSshTunnelPort();
+
+      int tunnelLocalPort = Config.getDatabasePort();
+      String tunnelRemoteHost = Config.getDatabaseHost();
+      int tunnelRemotePort = Config.getSshTunnelRemoteport();
+
+      java.util.Properties config = new java.util.Properties();
+      config.put("StrictHostKeyChecking", "no");
+
+      JSch jsch=new JSch();
+      session = jsch.getSession(user, host, port);
+      session.setPassword(password);
+      session.setConfig(config);
+      session.connect();
+      session.setPortForwardingL(tunnelLocalPort,tunnelRemoteHost,tunnelRemotePort);
+      System.out.println("Connected");
+      System.out.println(session.getServerVersion());
+
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
+    }
+    return session;
   }
 
   /**

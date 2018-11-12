@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import model.User;
+import utils.Hashing;
 import utils.Log;
 
 public class UserController {
@@ -37,7 +38,8 @@ public class UserController {
                 rs.getString("first_name"),
                 rs.getString("last_name"),
                 rs.getString("password"),
-                rs.getString("email"));
+                rs.getString("email"),
+                rs.getString("salt"));
 
         // return the create object
         return user;
@@ -80,7 +82,8 @@ public class UserController {
                 rs.getString("first_name"),
                 rs.getString("last_name"),
                 rs.getString("password"),
-                rs.getString("email"));
+                rs.getString("email"),
+                rs.getString("salt"));
 
         // Add element to list
         users.add(user);
@@ -106,20 +109,24 @@ public class UserController {
       dbCon = new DatabaseController();
     }
 
+    final String salt = Hashing.salt();
+
     // Insert the user in the DB
-    // TODO: Hash the user password before saving it.
+    // TODO: FIX - Hash the user password before saving it.
     int userID = dbCon.insert(
-        "INSERT INTO user(first_name, last_name, password, email, created_at) VALUES('"
+        "INSERT INTO user(first_name, last_name, password, email, created_at, salt) VALUES('"
             + user.getFirstname()
             + "', '"
             + user.getLastname()
             + "', '"
-            + user.getPassword()
+            + Hashing.sha(user.getPassword() + salt) //Adding salt before hashing and saving
             + "', '"
             + user.getEmail()
             + "', "
             + user.getCreatedTime()
-            + ")");
+            + ", '"
+            + salt //Saving the salt in the database
+            + "')");
 
     if (userID != 0) {
       //Update the userid of the user before returning
