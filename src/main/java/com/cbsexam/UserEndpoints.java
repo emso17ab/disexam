@@ -1,6 +1,7 @@
 package com.cbsexam;
 
 import com.google.gson.Gson;
+import com.sun.media.jfxmediaimpl.MediaUtils;
 import controllers.UserController;
 import java.util.ArrayList;
 import javax.ws.rs.Consumes;
@@ -10,7 +11,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import jdk.nashorn.internal.ir.IfNode;
 import model.User;
+import utils.Encryption;
 import utils.Log;
 
 @Path("user")
@@ -27,9 +31,10 @@ public class UserEndpoints {
     // Use the ID to get the user from the controller.
     User user = UserController.getUser(idUser);
 
-    // TODO: Add Encryption to JSON
+    // TODO: FIX Add Encryption to JSON
     // Convert the user object to json in order to return the object
     String json = new Gson().toJson(user);
+    json = Encryption.encryptDecryptXOR(json);
 
     // Return the user with the status code 200
     // TODO: What should happen if something breaks down?
@@ -47,9 +52,10 @@ public class UserEndpoints {
     // Get a list of users
     ArrayList<User> users = UserController.getUsers();
 
-    // TODO: Add Encryption to JSON
+    // TODO: FIX Add Encryption to JSON
     // Transfer users to json in order to return it to the user
     String json = new Gson().toJson(users);
+    json = Encryption.encryptDecryptXOR(json);
 
     // Return the users with the status code 200
     return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
@@ -82,13 +88,24 @@ public class UserEndpoints {
   @POST
   @Path("/login")
   @Consumes(MediaType.APPLICATION_JSON)
-  public Response loginUser(String x) {
+  public Response loginUser(String body) {
 
-    // Return a response with status 200 and JSON as type
-    return Response.status(400).entity("Endpoint not implemented yet").build();
+    // Read the json from body and transfer it to a user class
+    User logonUser = new Gson().fromJson(body, User.class);
+
+    // Use the controller to verify and login the user //TODO (OWN TODO) This should return a token not a boolean value!
+    if (UserController.login(logonUser)) {
+      return Response.status(400).entity("You have been successfully logged in!").build();
+    } else {
+      // Return a response with status 200 and JSON as type
+      return Response.status(400).entity("Login failed, check your credentials").build();
+    }
   }
 
   // TODO: Make the system able to delete users
+  @POST
+  @Path("/delete")
+  @Consumes(MediaType.APPLICATION_JSON)
   public Response deleteUser(String x) {
 
     // Return a response with status 200 and JSON as type
@@ -96,6 +113,9 @@ public class UserEndpoints {
   }
 
   // TODO: Make the system able to update users
+  @POST
+  @Path("/update")
+  @Consumes(MediaType.APPLICATION_JSON)
   public Response updateUser(String x) {
 
     // Return a response with status 200 and JSON as type

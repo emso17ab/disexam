@@ -19,8 +19,6 @@ public final class Encryption {
         thisIsEncrypted.append((char) (rawString.charAt(i) ^ key[i % key.length]));
       }
 
-      //TODO FIX
-
       // We return the encrypted string
       return thisIsEncrypted.toString();
 

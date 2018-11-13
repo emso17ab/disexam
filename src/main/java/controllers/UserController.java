@@ -54,6 +54,36 @@ public class UserController {
     return user;
   }
 
+  public static String verifyUserExists(String email) {
+
+    // Check for connection
+    if (dbCon == null) {
+      dbCon = new DatabaseController();
+    }
+
+    // Build the query for DB
+    String sql = "SELECT * FROM user where email='" + email + "'";
+
+    // Actually do the query
+    ResultSet rs = dbCon.query(sql);
+    String salt;
+
+    try {
+      // Get first object, since we only have one
+      if (rs.next()) {
+        salt = rs.getString("salt");
+        return salt;
+      } else {
+        System.out.println("No user found");
+      }
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+
+    // Return null
+    return null;
+  }
+
   /**
    * Get all users in database
    *
@@ -109,34 +139,94 @@ public class UserController {
       dbCon = new DatabaseController();
     }
 
-    final String salt = Hashing.salt();
+    // Check that email is not already used
+    if (verifyUserExists(user.getEmail()) == null) {
 
-    // Insert the user in the DB
-    // TODO: FIX - Hash the user password before saving it.
-    int userID = dbCon.insert(
-        "INSERT INTO user(first_name, last_name, password, email, created_at, salt) VALUES('"
-            + user.getFirstname()
-            + "', '"
-            + user.getLastname()
-            + "', '"
-            + Hashing.sha(user.getPassword() + salt) //Adding salt before hashing and saving
-            + "', '"
-            + user.getEmail()
-            + "', "
-            + user.getCreatedTime()
-            + ", '"
-            + salt //Saving the salt in the database
-            + "')");
 
-    if (userID != 0) {
-      //Update the userid of the user before returning
-      user.setId(userID);
-    } else{
-      // Return null if user has not been inserted into database
+      final String salt = Hashing.salt();
+
+      // Insert the user in the DB
+      // TODO: FIX - Hash the user password before saving it.
+      int userID = dbCon.insert(
+              "INSERT INTO user(first_name, last_name, password, email, created_at, salt) VALUES('"
+                      + user.getFirstname()
+                      + "', '"
+                      + user.getLastname()
+                      + "', '"
+                      + Hashing.sha(user.getPassword() + salt) //Adding salt before hashing and saving
+                      + "', '"
+                      + user.getEmail()
+                      + "', "
+                      + user.getCreatedTime()
+                      + ", '"
+                      + salt //Saving the salt in the database
+                      + "')");
+
+      if (userID != 0) {
+        //Update the userid of the user before returning
+        user.setId(userID);
+      } else {
+        // Return null if user has not been inserted into database
+        return null;
+      }
+    } else {
       return null;
     }
 
     // Return user
     return user;
+  }
+
+  public static Boolean login(User user) {
+
+    // Write in log that we've reach this step
+    Log.writeLog(UserController.class.getName(), user, "Verifying user...", 0);
+
+    //Verify that user exists in the database and get salt
+    String salt = verifyUserExists(user.getEmail());
+
+    // Check for DB Connection
+    if (dbCon == null) {
+      dbCon = new DatabaseController();
+    }
+
+    if (salt != null) {
+
+      //Hashing password input from user
+      String hashedPassword = Hashing.sha(user.getPassword() + salt);
+
+      // Build the query for DB
+      String sql = "SELECT * FROM user WHERE email='" + user.getEmail() + "' AND password='" + hashedPassword + "'";
+
+      // Actually do the query
+      ResultSet rs = dbCon.query(sql);
+      User result = null;
+
+      try {
+        // Get first object, since we only have one
+        if (rs.next()) {
+          result =
+                  new User(
+                          rs.getInt("id"),
+                          rs.getString("first_name"),
+                          rs.getString("last_name"),
+                          rs.getString("password"),
+                          rs.getString("email"),
+                          rs.getString("salt"));
+
+          // return the create object
+          return true;
+        } else {
+          System.out.println("No user found");
+        }
+      } catch (SQLException ex) {
+        System.out.println(ex.getMessage());
+      }
+
+    } else {
+      System.out.println("No user could be found");
+    }
+
+    return false;
   }
 }

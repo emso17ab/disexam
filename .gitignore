@@ -136,3 +136,4 @@ buildNumber.properties
 # End of https://www.gitignore.io/api/java,linux,maven,intellij
 
 src/main/resources/config.json
+src/main/resources/info
