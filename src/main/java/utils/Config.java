@@ -20,6 +20,7 @@ public final class Config {
   private static String DATABASE_PASSWORD;
   private static String DATABASE_NAME;
   private static boolean ENCRYPTION;
+  private static String ENCRYPTION_KEY;
   private static String SOLR_HOST;
   private static int SOLR_PORT;
   private static String SOLR_PATH;
@@ -74,6 +75,10 @@ public final class Config {
     return ENCRYPTION;
   }
 
+  public static char[] getEncryptionKey() {
+    return ENCRYPTION_KEY.toCharArray();
+  }
+
   public static String getSolrHost() {
     return SOLR_HOST;
   }
@@ -126,6 +131,7 @@ public final class Config {
     DATABASE_PASSWORD = json.get("DATABASE_PASSWORD").toString().replace("\"", "");
     DATABASE_NAME = json.get("DATABASE_NAME").toString().replace("\"", "");
     ENCRYPTION = json.get("ENCRYPTION").getAsBoolean();
+    ENCRYPTION_KEY = json.get("ENCRYPTION_KEY").getAsString();
     SOLR_HOST = json.get("SOLR_HOST").toString().replace("\"", "");
     SOLR_PORT = Integer.parseInt(json.get("SOLR_PORT").toString().replace("\"", ""));
     SOLR_PATH = json.get("SOLR_PATH").toString().replace("\"", "");
