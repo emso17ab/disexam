@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 
 import jdk.nashorn.internal.ir.IfNode;
 import model.User;
+import utils.Config;
 import utils.Encryption;
 import utils.Log;
 

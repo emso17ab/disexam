@@ -3,6 +3,8 @@ package utils;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
+
 import org.bouncycastle.util.encoders.Hex;
 
 public final class Hashing {
@@ -59,15 +61,15 @@ public final class Hashing {
     return rawString;
   }
 
+  //Method that generates a salt value
   public static String salt (){
-    final String ALPHA_NUMERIC_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    final String characterBucket = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     int count = 20;
     StringBuilder builder = new StringBuilder();
     while (count-- != 0) {
-      int character = (int) (Math.random() * ALPHA_NUMERIC_STRING.length());
-      builder.append(ALPHA_NUMERIC_STRING.charAt(character));
+      int character = (int) (Math.random() * characterBucket.length());
+      builder.append(characterBucket.charAt(character));
     }
-    return builder.toString();
+    return builder.toString() + System.currentTimeMillis();
   }
-
 }

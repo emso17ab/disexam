@@ -42,7 +42,7 @@ public class ProductEndpoints {
   public Response getProducts() {
 
     // Call our controller-layer in order to get the order from the DB
-    ArrayList<Product> products = ProductController.getProducts();
+    ArrayList<Product> products = ProductController.getProducts(false);
 
     // TODO: FIX Add Encryption to JSON
     // We convert the java object to json with GSON library imported in Maven
@@ -50,7 +50,7 @@ public class ProductEndpoints {
     json = Encryption.encryptDecryptXOR(json);
 
     // Return a response with status 200 and JSON as type
-    return Response.status(200).type(MediaType.TEXT_PLAIN_TYPE).entity(json).build();
+    return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
   }
 
   @POST

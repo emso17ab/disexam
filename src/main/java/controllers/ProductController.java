@@ -3,15 +3,19 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import cache.ProductCache;
 import model.Product;
 import utils.Log;
 
 public class ProductController {
 
   private static DatabaseController dbCon;
+  private static ProductCache cache;
 
   public ProductController() {
     dbCon = new DatabaseController();
+    cache = new ProductCache();
   }
 
   public static Product getProduct(int id) {
@@ -91,36 +95,52 @@ public class ProductController {
    *
    * @return
    */
-  public static ArrayList<Product> getProducts() {
+  public static ArrayList<Product> getProducts(Boolean forceUpdate) {
 
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
-
-    // TODO: Use caching layer.
-    String sql = "SELECT * FROM product";
-
-    ResultSet rs = dbCon.query(sql);
-    ArrayList<Product> products = new ArrayList<Product>();
-
-    try {
-      while (rs.next()) {
-        Product product =
-            new Product(
-                rs.getInt("id"),
-                rs.getString("name"),
-                rs.getString("sku"),
-                rs.getFloat("price"),
-                rs.getString("description"),
-                rs.getInt("stock"));
-
-        products.add(product);
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
+    if (cache == null) {
+      cache = new ProductCache();
     }
 
-    return products;
+    // TODO FIX: Use caching layer.
+    if (cache.requireUpdate() || forceUpdate) {
+
+      System.out.println("cache is now updating...");
+
+
+      String sql = "SELECT * FROM product";
+
+      ResultSet rs = dbCon.query(sql);
+      ArrayList<Product> products = new ArrayList<Product>();
+
+      try {
+        while (rs.next()) {
+          Product product =
+                  new Product(
+                          rs.getInt("id"),
+                          rs.getString("product_name"),
+                          rs.getString("sku"),
+                          rs.getFloat("price"),
+                          rs.getString("description"),
+                          rs.getInt("stock"));
+
+          products.add(product);
+        }
+      } catch (SQLException ex) {
+        System.out.println(ex.getMessage());
+      }
+
+      //Updates cache with the most recent data from the call above
+      cache.updateCache(products);
+
+      return products;
+    }
+
+    //If the cache is still valid then just return the products from cache without calling the database
+    System.out.println("This data was found from the cache...");
+    return cache.getProducts();
   }
 
   public static Product createProduct(Product product) {

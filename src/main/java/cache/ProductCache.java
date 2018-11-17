@@ -1,9 +1,8 @@
 package cache;
 
-import controllers.ProductController;
-import java.util.ArrayList;
 import model.Product;
 import utils.Config;
+import java.util.ArrayList;
 
 public class ProductCache {
 
@@ -18,26 +17,21 @@ public class ProductCache {
 
   public ProductCache() {
     this.ttl = Config.getProductTtl();
+    this.created = System.currentTimeMillis() / 1000L;
+    this.products = new ArrayList<>();
   }
 
-  public ArrayList<Product> getProducts(Boolean forceUpdate) {
+  public Boolean requireUpdate() {
+    return ((this.created + this.ttl) < (System.currentTimeMillis() / 1000L) || this.products.isEmpty());
+  }
 
-    // If we whis to clear cache, we can set force update.
-    // Otherwise we look at the age of the cache and figure out if we should update.
-    // If the list is empty we also check for new products
-    if (forceUpdate
-        || ((this.created + this.ttl) >= (System.currentTimeMillis() / 1000L))
-        || this.products.isEmpty()) {
-
-      // Get products from controller, since we wish to update.
-      ArrayList<Product> products = ProductController.getProducts();
-
-      // Set products for the instance and set created timestamp
-      this.products = products;
-      this.created = System.currentTimeMillis() / 1000L;
-    }
-
-    // Return the documents
+  public ArrayList<Product> getProducts() {
     return this.products;
+  }
+
+  //Method to update cahce i.e. the ProductController can populate the cache with data from recent database call
+  public void updateCache(ArrayList<Product> products) {
+    this.products = products;
+    this.created = System.currentTimeMillis() / 1000L;
   }
 }
