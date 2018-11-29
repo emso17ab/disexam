@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="disexam:war">
+    <output-path>$PROJECT_DIR$/out/artifacts/disexam_war</output-path>
+    <root id="archive" name="disexam_war.war">
+      <element id="artifact" artifact-name="disexam:war exploded" />
+    </root>
+  </artifact>
+</component>

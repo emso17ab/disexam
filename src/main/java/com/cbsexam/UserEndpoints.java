@@ -1,20 +1,12 @@
 package com.cbsexam;
 
 import com.google.gson.Gson;
-import com.sun.media.jfxmediaimpl.MediaUtils;
 import controllers.UserController;
 import java.util.ArrayList;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import jdk.nashorn.internal.ir.IfNode;
 import model.User;
-import utils.Config;
 import utils.Encryption;
 import utils.Log;
 
@@ -36,6 +28,10 @@ public class UserEndpoints {
     // Convert the user object to json in order to return the object
     String json = new Gson().toJson(user);
     json = Encryption.encryptDecryptXOR(json);
+
+    if (user == null) {
+      return Response.status(400).entity("Could not create user").build();
+    }
 
     // Return the user with the status code 200
     // TODO: What should happen if something breaks down?
@@ -96,6 +92,23 @@ public class UserEndpoints {
 
     // Use the controller to verify and login the user //TODO (OWN TODO) This should return a token not a boolean value!
     if (UserController.login(logonUser)) {
+      return Response.status(400).entity("You have been successfully logged in!").build();
+    } else {
+      // Return a response with status 200 and JSON as type
+      return Response.status(400).entity("Login failed, check your credentials").build();
+    }
+  }
+
+  @POST
+  @Path("/login")
+  @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+  public Response loginUserThroughForm (@FormParam("username") String email, @FormParam("password") String password) {
+
+    User user = new User(email, password);
+    System.out.println(user.getEmail() + user.getPassword());
+
+    // Use the controller to verify and login the user //TODO (OWN TODO) This should return a token not a boolean value!
+    if (UserController.login(user)) {
       return Response.status(400).entity("You have been successfully logged in!").build();
     } else {
       // Return a response with status 200 and JSON as type
