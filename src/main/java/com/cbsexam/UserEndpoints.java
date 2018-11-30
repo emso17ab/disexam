@@ -2,6 +2,10 @@ package com.cbsexam;
 
 import com.google.gson.Gson;
 import controllers.UserController;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -99,6 +103,7 @@ public class UserEndpoints {
     }
   }
 
+
   @POST
   @Path("/login")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -106,14 +111,38 @@ public class UserEndpoints {
 
     User user = new User(email, password);
     System.out.println(user.getEmail() + user.getPassword());
+    String responseHtmlString;
 
     // Use the controller to verify and login the user //TODO (OWN TODO) This should return a token not a boolean value!
     if (UserController.login(user)) {
-      return Response.status(400).entity("You have been successfully logged in!").build();
+      System.out.println("SUCCESS");
+      responseHtmlString = "/OnSuccessPage.html";
     } else {
       // Return a response with status 200 and JSON as type
-      return Response.status(400).entity("Login failed, check your credentials").build();
+      System.out.println("FAILURE");
+      responseHtmlString = "/OnFailurePage.html";
     }
+
+    // Read File and store input
+    InputStream input = UserEndpoints.class.getResourceAsStream(responseHtmlString);
+    BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+
+    // Go through the lines one by one
+    StringBuffer stringBuffer = new StringBuffer();
+    String str;
+
+    // Read file one line at a time
+    try {
+      while ((str = reader.readLine()) != null) {
+        stringBuffer.append(str);
+      }
+    }catch (Exception e){
+      System.out.println(e);
+    }
+
+    String htmlString = stringBuffer.toString();
+
+    return Response.status(200).type(MediaType.TEXT_HTML_TYPE).entity(htmlString).build();
   }
 
   // TODO: Make the system able to delete users
