@@ -263,12 +263,33 @@ public class UserController {
           activeUser = null;
           return true;
         }
-      } else {
-        System.out.println("TOKEN NOT VERIFIED!");
+      } return false;
+    } catch (io.jsonwebtoken.SignatureException exception){ return false; }
+  }
+
+  public static Boolean updateUser(User user) throws io.jsonwebtoken.SignatureException {
+    try {
+      Claims claims = Authenticator.verifyToken(user.getToken());
+
+      if (Integer.parseInt(claims.getId()) == user.getId()) {
+
+        //Check for DB Connection
+        if (dbCon == null) {
+          dbCon = new DatabaseController();
+        }
+
+        int rowsAffected = dbCon.insert("UPDATE user SET " +
+                "first_name = '" + user.getFirstname() +
+                "', last_name = '" + user.getLastname() +
+                "', email = '" + user.getEmail() +
+                "' WHERE id=" + user.getId() + ";");
+
+        return rowsAffected == 1;
       }
-      return false;
+
     } catch (io.jsonwebtoken.SignatureException exception){
       return false;
     }
+    return false;
   }
 }

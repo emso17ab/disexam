@@ -2,10 +2,10 @@ package model;
 
 public class Product {
 
-  public int id;
-  public String name;
-  public String sku;
-  public float price;
+  private int id;
+  private String name;
+  private String sku;
+  private float price;
   private String description;
   private int stock;
   private long createdTime;

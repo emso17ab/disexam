@@ -2,13 +2,14 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Simple Form</title>
+    <title>INTEPA Login</title>
     <style>
         #softuni-login-form {
             width: 400px;
-            height: 320px;
+            height: 500px;
             background-color: #EEEEEE;
             font-family: tahoma;
+
         }
 
         header h3 {
@@ -21,7 +22,7 @@
             display: inline-block;
             float: left;
             width: 250px;
-            height: 213px;
+            height: 50px;
             padding-top: 10px;
             color: #5F5F5F;
         }
@@ -80,6 +81,13 @@
             margin-right: 15px;
             font-size: 70%;
         }
+
+        #searchField {
+            height: 20px;
+        }
+        #log-out {
+            margin-top: 80px;
+        }
     </style>
 
 </head>
@@ -89,6 +97,9 @@
         <h3>MENU</h3>
         <p>What would you like to do?.</p>
     </header>
+    <form action="/user/profile" method="get" id="profile-form">
+        <input type="submit" value="View profile" id="get-profile"/>
+    </form>
     <form action="/user" method="get" id="users-form">
         <input type="submit" value="See all users" id="get-users"/>
     </form>
@@ -96,8 +107,11 @@
         <input type="submit" value="See all products" id="get-products"/>
     </form>
     <form action="/search/title" method="post" id="search-form">
-        <input type="text" placeholder="Search" name="searchfield" required class="input-text"/>
+        <input id="searchField" type="text" placeholder="Search" name="searchfield" required class="input-text"/>
         <input type="submit" value="Search books" id="search"/>
+    </form>
+    <form action="/" method="get" id="logout">
+        <input type="submit" value="Logout" id="log-out"/>
     </form>
 </div>
 </body>
