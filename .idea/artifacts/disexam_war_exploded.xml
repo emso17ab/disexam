@@ -46,6 +46,13 @@
           <element id="library" level="project" name="Maven: org.slf4j:slf4j-log4j12:1.7.5" />
           <element id="library" level="project" name="Maven: org.glassfish.hk2:osgi-resource-locator:1.0.1" />
           <element id="library" level="project" name="Maven: com.jcraft:jsch:0.1.54" />
+          <element id="library" level="project" name="Maven: com.auth0:java-jwt:3.4.1" />
+          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.7" />
+          <element id="library" level="project" name="Maven: commons-codec:commons-codec:1.11" />
+          <element id="library" level="project" name="Maven: nl.open:java-jwt-nodependencies:3.2.0" />
+          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.7" />
+          <element id="library" level="project" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.0" />
+          <element id="library" level="project" name="Maven: io.jsonwebtoken:jjwt:0.9.0" />
         </element>
       </element>
     </root>

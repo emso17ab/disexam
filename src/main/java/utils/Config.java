@@ -26,6 +26,7 @@ public final class Config {
   private static String SOLR_PATH;
   private static String SOLR_CORE;
   private static long PRODUCT_TTL;
+  private static long TOKEN_TTL;
 
   public static String getSshTunnelHost() {
     return SSH_TUNNEL_HOST;
@@ -95,7 +96,9 @@ public final class Config {
     return SOLR_CORE;
   }
 
-
+  public static long getTokenTtl() {
+    return TOKEN_TTL;
+  }
 
   public static void initializeConfig() throws IOException {
 
@@ -137,5 +140,6 @@ public final class Config {
     SOLR_PATH = json.get("SOLR_PATH").toString().replace("\"", "");
     SOLR_CORE = json.get("SOLR_CORE").toString().replace("\"", "");
     PRODUCT_TTL = json.get("PRODUCT_TTL").getAsLong();
+    TOKEN_TTL = json.get("TOKEN_TTL").getAsLong();
   }
 }

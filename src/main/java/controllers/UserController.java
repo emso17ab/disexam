@@ -3,16 +3,23 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import com.auth0.jwt.interfaces.Claim;
+import io.jsonwebtoken.Claims;
 import model.User;
+import utils.Authenticator;
 import utils.Hashing;
 import utils.Log;
 
 public class UserController {
 
+  private static User activeUser;
+
   private static DatabaseController dbCon;
 
   public UserController() {
     dbCon = new DatabaseController();
+    activeUser = new User();
   }
 
   public static User getUser(int id) {
@@ -52,6 +59,10 @@ public class UserController {
 
     // Return null
     return user;
+  }
+
+  public static User getActiveUser() {
+    return activeUser;
   }
 
   public static String verifyUserExists(String email) {
@@ -177,7 +188,7 @@ public class UserController {
     return user;
   }
 
-  public static Boolean login(User user) {
+  public static User login(User user) {
 
     // Write in log that we've reach this step
     Log.writeLog(UserController.class.getName(), user, "Verifying user...", 0);
@@ -214,8 +225,8 @@ public class UserController {
                           rs.getString("email"),
                           rs.getString("salt"));
 
-          // return the create object
-          return true;
+          // Store the create object
+          activeUser = result;
         } else {
           System.out.println("No user found");
         }
@@ -223,10 +234,41 @@ public class UserController {
         System.out.println(ex.getMessage());
       }
 
-    } else {
-      System.out.println("No user could be found");
-    }
+      //Generate token for the user
+      String token = Authenticator.createToken(activeUser.getId());
+      //Assign token to the user
+      activeUser.setToken(token);
 
-    return false;
+      if (token != null) {
+        return activeUser;
+      } else {
+        return null;
+      }
+    } return null;
+  }
+
+  public static Boolean deleteUser(User user) throws io.jsonwebtoken.SignatureException {
+    try {
+      Claims claims = Authenticator.verifyToken(user.getToken());
+
+      if (Integer.parseInt(claims.getId()) == user.getId()) {
+
+        // Check for DB Connection
+        if (dbCon == null) {
+          dbCon = new DatabaseController();
+        }
+        int rowsAffected = dbCon.insert("DELETE FROM user WHERE id=" + user.getId());
+
+        if (rowsAffected == 1) {
+          activeUser = null;
+          return true;
+        }
+      } else {
+        System.out.println("TOKEN NOT VERIFIED!");
+      }
+      return false;
+    } catch (io.jsonwebtoken.SignatureException exception){
+      return false;
+    }
   }
 }

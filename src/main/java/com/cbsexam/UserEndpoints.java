@@ -1,5 +1,8 @@
 package com.cbsexam;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
 import com.google.gson.Gson;
 import controllers.UserController;
 
@@ -11,6 +14,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import model.User;
+import utils.Authenticator;
 import utils.Encryption;
 import utils.Log;
 
@@ -92,24 +96,26 @@ public class UserEndpoints {
   public Response loginUser(String body) {
 
     // Read the json from body and transfer it to a user class
-    User logonUser = new Gson().fromJson(body, User.class);
+    User userInput = new Gson().fromJson(body, User.class);
+    // Use the controller to verify and login the user
+    User verifiedUser = UserController.login(userInput);
+    String json = new Gson().toJson(verifiedUser);
 
-    // Use the controller to verify and login the user //TODO (OWN TODO) This should return a token not a boolean value!
-    if (UserController.login(logonUser)) {
-      return Response.status(400).entity("You have been successfully logged in!").build();
+    if (verifiedUser != null && verifiedUser.getToken() != null) {
+      return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
     } else {
-      // Return a response with status 200 and JSON as type
       return Response.status(400).entity("Login failed, check your credentials").build();
     }
   }
-
 
   @POST
   @Path("/login")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public Response loginUserThroughForm (@FormParam("username") String email, @FormParam("password") String password) {
-
-    User user = new User(email, password);
+    /*
+    User user = new User();
+    user.setEmail(email);
+    user.setPassword(password);
     System.out.println(user.getEmail() + user.getPassword());
     String responseHtmlString;
 
@@ -143,16 +149,30 @@ public class UserEndpoints {
     String htmlString = stringBuffer.toString();
 
     return Response.status(200).type(MediaType.TEXT_HTML_TYPE).entity(htmlString).build();
+    */
+    return null;
   }
 
-  // TODO: Make the system able to delete users
+
+  // TODO: FIX Make the system able to delete users
   @POST
   @Path("/delete")
   @Consumes(MediaType.APPLICATION_JSON)
-  public Response deleteUser(String x) {
+  public Response deleteUser(String body) {
 
-    // Return a response with status 200 and JSON as type
-    return Response.status(400).entity("Endpoint not implemented yet").build();
+    // Read the json from body and transfer it to a user class
+    User deleteMe = new Gson().fromJson(body, User.class);
+    Boolean response;
+
+    if (deleteMe.isEraseMe()){
+      response = UserController.deleteUser(deleteMe);
+    } else {
+      return Response.status(200).entity("User was not deleted").build();
+    }
+    if (response){
+      return Response.status(200).entity("User was effectively deleted!").build();
+    }
+    return Response.status(400).entity("Something went wrong!").build();
   }
 
   // TODO: Make the system able to update users
@@ -164,4 +184,15 @@ public class UserEndpoints {
     // Return a response with status 200 and JSON as type
     return Response.status(400).entity("Endpoint not implemented yet").build();
   }
+
+  @GET
+  @Path("/test")
+  public Response test() {
+
+    String json = new Gson().toJson(UserController.getActiveUser());
+    return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
+
+  }
+
+
 }

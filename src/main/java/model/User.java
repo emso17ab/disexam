@@ -3,20 +3,14 @@ package model;
 public class User {
 
   public int id;
-  public String firstname;
-  public String lastname;
-  public String email;
+  private String firstname;
+  private String lastname;
+  private String email;
   private String password;
   private long createdTime;
   private String salt;
-
-  public String getSalt() {
-    return salt;
-  }
-
-  public void setSalt(String salt) {
-    this.salt = salt;
-  }
+  private String token;
+  private boolean eraseMe;
 
   public User(int id, String firstname, String lastname, String password, String email, String salt) {
     this.id = id;
@@ -25,11 +19,11 @@ public class User {
     this.password = password;
     this.email = email;
     this.salt = salt;
+    this.eraseMe = false;
   }
 
-  public User(String email, String password) {
-      this.email = email;
-      this.password = password;
+  public User() {
+    this.eraseMe = false;
   }
 
   public int getId() {
@@ -78,5 +72,29 @@ public class User {
 
   public void setCreatedTime(long createdTime) {
     this.createdTime = createdTime;
+  }
+
+  public String getSalt() {
+    return salt;
+  }
+
+  public void setSalt(String salt) {
+    this.salt = salt;
+  }
+
+  public String getToken() {
+    return token;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
+  }
+
+  public boolean isEraseMe() {
+    return eraseMe;
+  }
+
+  public void setEraseMe(boolean eraseMe) {
+    this.eraseMe = eraseMe;
   }
 }
