@@ -27,6 +27,7 @@ public final class Config {
   private static String SOLR_CORE;
   private static long PRODUCT_TTL;
   private static long TOKEN_TTL;
+  private static String AUTHENTICATOR_KEY;
 
   public static String getSshTunnelHost() {
     return SSH_TUNNEL_HOST;
@@ -100,6 +101,10 @@ public final class Config {
     return TOKEN_TTL;
   }
 
+  public static String getAuthenticatorKey() {
+    return AUTHENTICATOR_KEY;
+  }
+
   public static void initializeConfig() throws IOException {
 
     // Init variables to parse JSON
@@ -141,5 +146,6 @@ public final class Config {
     SOLR_CORE = json.get("SOLR_CORE").toString().replace("\"", "");
     PRODUCT_TTL = json.get("PRODUCT_TTL").getAsLong();
     TOKEN_TTL = json.get("TOKEN_TTL").getAsLong();
+    AUTHENTICATOR_KEY = json.get("AUTHENTICATOR_KEY").toString().replace("\"","");
   }
 }
