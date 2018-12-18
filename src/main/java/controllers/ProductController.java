@@ -57,6 +57,35 @@ public class ProductController {
     return product;
   }
 
+  public static Product sqlGetProduct(ResultSet rs) {
+
+    Product product = null;
+
+    try {
+      // Get first row and create the object and return it
+      if (rs.next()) {
+        product =
+                new Product(
+                        rs.getInt("id"),
+                        rs.getString("product_name"),
+                        rs.getString("sku"),
+                        rs.getFloat("price"),
+                        rs.getString("description"),
+                        rs.getInt("stock"));
+
+        // Return the product
+        return product;
+      } else {
+        System.out.println("No user found");
+      }
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+
+    // Return empty object
+    return product;
+  }
+
   public static Product getProductBySku(String sku) {
 
     if (dbCon == null) {
@@ -136,7 +165,7 @@ public class ProductController {
       cache.updateCache(products);
 
       return products;
-    }
+  }
 
     //If the cache is still valid then just return the products from cache without calling the database
     System.out.println("This data was found from the cache...");

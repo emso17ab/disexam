@@ -61,6 +61,28 @@ public class UserController {
     return user;
   }
 
+  public static User sqlGetUser(ResultSet rs) throws SQLException {
+    try {
+      // Get first object, since we only have one
+      if (rs.next()) {
+
+        // return the create object
+        return new User(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("password"),
+                        rs.getString("email"),
+                        rs.getString("salt"));
+      } else {
+        System.out.println("No user found");
+      }
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+    return null;
+  }
+
   public static User getActiveUser() {
     return activeUser;
   }

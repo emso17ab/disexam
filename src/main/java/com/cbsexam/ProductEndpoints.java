@@ -49,6 +49,8 @@ public class ProductEndpoints {
     String json = new Gson().toJson(products);
     json = Encryption.encryptDecryptXOR(json);
 
+    System.out.println(json);
+
     // Return a response with status 200 and JSON as type
     return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
   }

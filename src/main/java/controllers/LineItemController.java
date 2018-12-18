@@ -7,6 +7,8 @@ import model.LineItem;
 import model.Product;
 import utils.Log;
 
+import javax.sound.sampled.Line;
+
 public class LineItemController {
 
   private static DatabaseController dbCon;
