@@ -1,11 +1,8 @@
 package com.cbsexam;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
+import cache.UserCache;
 import com.google.gson.Gson;
 import controllers.UserController;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -14,12 +11,15 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import model.User;
-import utils.Authenticator;
+import utils.Config;
 import utils.Encryption;
 import utils.Log;
 
 @Path("user")
 public class UserEndpoints {
+
+  private final UserCache cache = new UserCache();
+  private final Boolean cacheUpdate = Config.getCacheForceUpdate();
 
   /**
    * @param idUser
@@ -55,7 +55,7 @@ public class UserEndpoints {
     Log.writeLog(this.getClass().getName(), this, "Get all users", 0);
 
     // Get a list of users
-    ArrayList<User> users = UserController.getUsers();
+    ArrayList<User> users = cache.getUsers(cacheUpdate);
 
     // TODO: FIX Add Encryption to JSON
     // Transfer users to json in order to return it to the user
@@ -142,7 +142,7 @@ public class UserEndpoints {
         stringBuffer.append(str);
       }
     }catch (Exception e){
-      System.out.println(e);
+      e.printStackTrace();
     }
 
     String htmlString = stringBuffer.toString();

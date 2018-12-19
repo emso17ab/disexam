@@ -17,7 +17,7 @@ public class OrderCache {
     private long created;
 
     public OrderCache() {
-        this.ttl = Config.getProductTtl();
+        this.ttl = Config.getCacheTtl();
         this.created = System.currentTimeMillis() / 1000L;
         this.orders = new ArrayList<>();
     }

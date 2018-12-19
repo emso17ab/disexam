@@ -3,19 +3,15 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import cache.ProductCache;
 import model.Product;
 import utils.Log;
 
 public class ProductController {
 
   private static DatabaseController dbCon;
-  private static ProductCache cache;
 
   public ProductController() {
     dbCon = new DatabaseController();
-    cache = new ProductCache();
   }
 
   public static Product getProduct(int id) {
@@ -95,20 +91,13 @@ public class ProductController {
    *
    * @return
    */
-  public static ArrayList<Product> getProducts(Boolean forceUpdate) {
+  public static ArrayList<Product> getProducts() {
 
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
-    if (cache == null) {
-      cache = new ProductCache();
-    }
 
     // TODO FIX: Use caching layer.
-    if (cache.requireUpdate() || forceUpdate) {
-
-      System.out.println("cache is now updating...");
-
 
       String sql = "SELECT * FROM product";
 
@@ -131,16 +120,7 @@ public class ProductController {
       } catch (SQLException ex) {
         System.out.println(ex.getMessage());
       }
-
-      //Updates cache with the most recent data from the call above
-      cache.updateCache(products);
-
       return products;
-  }
-
-    //If the cache is still valid then just return the products from cache without calling the database
-    System.out.println("This data was found from the cache...");
-    return cache.getProducts();
   }
 
   public static Product createProduct(Product product) {

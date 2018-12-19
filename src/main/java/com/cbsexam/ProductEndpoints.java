@@ -1,20 +1,21 @@
 package com.cbsexam;
 
+import cache.ProductCache;
 import com.google.gson.Gson;
 import controllers.ProductController;
 import java.util.ArrayList;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import model.Product;
+import utils.Config;
 import utils.Encryption;
 
 @Path("product")
 public class ProductEndpoints {
+
+  private final ProductCache cache = new ProductCache();
+  private final Boolean cacheUpdate = Config.getCacheForceUpdate();
 
   /**
    * @param idProduct
@@ -25,11 +26,12 @@ public class ProductEndpoints {
   public Response getProduct(@PathParam("idProduct") int idProduct) {
 
     // Call our controller-layer in order to get the order from the DB
-    Product product = ProductController.getProduct(idProduct);
+    Product product = cache.getProduct(idProduct);
 
     // TODO: FIX Add Encryption to JSON
     // We convert the java object to json with GSON library imported in Maven
     String json = new Gson().toJson(product);
+
     json = Encryption.encryptDecryptXOR(json);
 
     // Return a response with status 200 and JSON as type
@@ -42,7 +44,7 @@ public class ProductEndpoints {
   public Response getProducts() {
 
     // Call our controller-layer in order to get the order from the DB
-    ArrayList<Product> products = ProductController.getProducts(false);
+    ArrayList<Product> products = cache.getProducts(cacheUpdate);
 
     // TODO: FIX Add Encryption to JSON
     // We convert the java object to json with GSON library imported in Maven

@@ -25,7 +25,8 @@ public final class Config {
   private static int SOLR_PORT;
   private static String SOLR_PATH;
   private static String SOLR_CORE;
-  private static long PRODUCT_TTL;
+  private static long CACHE_TTL;
+  private static boolean CACHE_FORCE_UPDATE;
   private static long TOKEN_TTL;
   private static String AUTHENTICATOR_KEY;
 
@@ -49,8 +50,12 @@ public final class Config {
     return SSH_TUNNEL_REMOTEPORT;
   }
 
-  public static long getProductTtl() {
-    return PRODUCT_TTL;
+  public static long getCacheTtl() {
+    return CACHE_TTL;
+  }
+
+  public static boolean getCacheForceUpdate() {
+    return CACHE_FORCE_UPDATE;
   }
 
   public static String getDatabaseHost() {
@@ -144,7 +149,8 @@ public final class Config {
     SOLR_PORT = Integer.parseInt(json.get("SOLR_PORT").toString().replace("\"", ""));
     SOLR_PATH = json.get("SOLR_PATH").toString().replace("\"", "");
     SOLR_CORE = json.get("SOLR_CORE").toString().replace("\"", "");
-    PRODUCT_TTL = json.get("PRODUCT_TTL").getAsLong();
+    CACHE_TTL = json.get("PRODUCT_TTL").getAsLong();
+    CACHE_FORCE_UPDATE = json.get("CACHE_FORCE_UPDATE").getAsBoolean();
     TOKEN_TTL = json.get("TOKEN_TTL").getAsLong();
     AUTHENTICATOR_KEY = json.get("AUTHENTICATOR_KEY").toString().replace("\"","");
   }
