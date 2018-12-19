@@ -18,50 +18,143 @@ public class OrderController {
 
   public static Order getOrder(int id) {
 
-    // check for connection
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
 
-    // Build SQL string to query
-    String sql = "SELECT * FROM orders where id=" + id;
+    //Preparing sql String for join query
+    String sql = "SELECT orders.id AS 'order_id', orders.user_id, " +
+            "user.first_name, user.last_name, user.password, user.email, user.salt, user.created_at AS 'user_created', " +
+            "line_item.id AS 'line_item_id', line_item.price AS 'line_item_price', line_item.quantity, " +
+            "product.id AS 'product_id', product.product_name, product.sku, product.price AS 'product_price', product.description, " +
+            "product.stock, product.created_at AS 'product_created', orders.billing_address_id, billingAddress.name AS 'billingName', " +
+            "billingAddress.city AS 'billingCity', billingAddress.zipcode AS 'billingZipcode', billingAddress.street_address AS 'billingStreet', " +
+            "orders.shipping_address_id, shippingAddress.name AS 'shippingName', shippingAddress.city AS 'shippingCity', " +
+            "shippingAddress.zipcode AS 'shippingZipcode', shippingAddress.street_address AS 'shippingStreet', " +
+            "orders.order_total, orders.created_at AS 'order_created', orders.updated_at " +
+            "FROM orders " +
+            "LEFT JOIN line_item ON orders.id=line_item.order_id " +
+            "LEFT JOIN user ON orders.user_id=user.id " +
+            "LEFT JOIN product ON line_item.product_id=product.id " +
+            "LEFT JOIN address AS billingAddress ON orders.billing_address_id=billingAddress.id " +
+            "LEFT JOIN address AS shippingAddress ON orders.shipping_address_id=shippingAddress.id " +
+            "WHERE orders.id=" + id + ";";
 
-    // Do the query in the database and create an empty object for the results
+    //Executing statement,saving it in ResultSet
     ResultSet rs = dbCon.query(sql);
-    Order order = null;
+
+    //Preparing the order to be returned
+    Order currentOrder = null;
+
+    //Necessary variables/placeholders for loop through ResultSet to work
+    ArrayList<LineItem> currentLineItems = null;
+    int lineNo; //The current order_id value at current iteration through ResultSet
+    int currentOrderId = 0; //The current order we are processing in the loop
 
     try {
-      if (rs.next()) {
+      while (rs.next()){
 
-        // Perhaps we could optimize things a bit here and get rid of nested queries.
-        User user = UserController.getUser(rs.getInt("user_id"));
-        ArrayList<LineItem> lineItems = LineItemController.getLineItemsForOrder(rs.getInt("id"));
-        Address billingAddress = AddressController.getAddress(rs.getInt("billing_address_id"));
-        Address shippingAddress = AddressController.getAddress(rs.getInt("shipping_address_id"));
+        lineNo = rs.getInt("order_id");
 
-        // Create an object instance of order from the database dataa
-        order =
-            new Order(
-                rs.getInt("id"),
-                user,
-                lineItems,
-                billingAddress,
-                shippingAddress,
-                rs.getFloat("order_total"),
-                rs.getLong("created_at"),
-                rs.getLong("updated_at"));
+        //If the lineNo is not the currentOrder, that means we have arrived at a new order
+        if (lineNo != currentOrderId) {
 
-        // Returns the build order
-        return order;
-      } else {
-        System.out.println("No order found");
+          //Setting the current order we are processing from the new lineNo we arrived at in the loop
+          currentOrderId = lineNo;
+
+          //Resetting placeholders
+          currentLineItems = new ArrayList<>();
+          currentOrder = new Order();
+
+          //Preparing new order entry because we are at a new order ID
+          currentOrder.setId(currentOrderId);
+          currentOrder.setOrderTotal(rs.getFloat("order_total"));
+          currentOrder.setCreatedAt(rs.getInt("order_created"));
+          currentOrder.setUpdatedAt(rs.getInt("updated_at"));
+
+          //Adding the customer (User) to the order
+          User user = new User(
+                  rs.getInt("user_id"),
+                  rs.getString("first_name"),
+                  rs.getString("last_name"),
+                  rs.getString("password"),
+                  rs.getString("email"),
+                  rs.getString("salt"));
+          user.setCreatedTime(rs.getLong("user_created"));
+          currentOrder.setCustomer(user);
+
+          //Adding the addresses to the order
+          currentOrder.setShippingAddress(new Address(
+                  rs.getInt("shipping_address_id"),
+                  rs.getString("shippingName"),
+                  rs.getString("shippingStreet"),
+                  rs.getString("shippingCity"),
+                  rs.getString("shippingZipcode")
+          ));
+          currentOrder.setBillingAddress(new Address(
+                  rs.getInt("billing_address_id"),
+                  rs.getString("billingName"),
+                  rs.getString("billingStreet"),
+                  rs.getString("billingCity"),
+                  rs.getString("billingZipcode")
+          ));
+
+          //Adding the product for the lineItem
+          Product product = new Product(
+                  rs.getInt("product_id"),
+                  rs.getString("product_name"),
+                  rs.getString("sku"),
+                  rs.getFloat("product_price"),
+                  rs.getString("description"),
+                  rs.getInt("stock"));
+          product.setCreatedTime(rs.getLong("product_created"));
+
+          //Adding the first lineItem
+          LineItem lineItem = new LineItem(
+                  rs.getInt("line_item_id"),
+                  product,
+                  rs.getInt("quantity"),
+                  rs.getFloat("line_item_price"));
+
+          currentLineItems.add(lineItem);
+
+
+          //If the lineNo == current order, that means that we have arrived at a new lineItem in the loop, but for the same order
+        } else {
+
+          //Adding the product for the next lineItem
+          Product product = new Product(
+                  rs.getInt("product_id"),
+                  rs.getString("product_name"),
+                  rs.getString("sku"),
+                  rs.getFloat("product_price"),
+                  rs.getString("description"),
+                  rs.getInt("stock"));
+          product.setCreatedTime(rs.getLong("product_created"));
+
+          //Adding next lineItem to the existing order
+          LineItem lineItem = new LineItem(
+                  rs.getInt("line_item_id"),
+                  product,
+                  rs.getInt("quantity"),
+                  rs.getFloat("line_item_price"));
+
+          if (currentLineItems != null){
+            currentLineItems.add(lineItem);
+          }
+        }
       }
+
+      //Adding the lineItems after loop finished
+      if (currentOrderId != 0) {
+        currentOrder.setLineItems(currentLineItems);
+      }
+
     } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
+      ex.printStackTrace();
     }
 
-    // Returns null
-    return order;
+    return currentOrder;
   }
 
   /**
@@ -205,6 +298,13 @@ public class OrderController {
           }
         }
       }
+
+      //Adding the last order after loop finished
+      if (currentOrderId != 0) {
+        currentOrder.setLineItems(currentLineItems);
+        orders.add(currentOrder);
+      }
+
     } catch (SQLException ex) {
       ex.printStackTrace();
     }
