@@ -3,8 +3,6 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import com.auth0.jwt.interfaces.Claim;
 import io.jsonwebtoken.Claims;
 import model.User;
 import utils.Authenticator;
@@ -59,28 +57,6 @@ public class UserController {
 
     // Return null
     return user;
-  }
-
-  public static User sqlGetUser(ResultSet rs) throws SQLException {
-    try {
-      // Get first object, since we only have one
-      if (rs.next()) {
-
-        // return the create object
-        return new User(
-                        rs.getInt("id"),
-                        rs.getString("first_name"),
-                        rs.getString("last_name"),
-                        rs.getString("password"),
-                        rs.getString("email"),
-                        rs.getString("salt"));
-      } else {
-        System.out.println("No user found");
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
-    }
-    return null;
   }
 
   public static User getActiveUser() {

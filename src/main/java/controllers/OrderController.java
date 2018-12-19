@@ -75,9 +75,10 @@ public class OrderController {
       dbCon = new DatabaseController();
     }
 
+    //Preparing sql String for join query
     String sql = "SELECT orders.id AS 'order_id', orders.user_id, " +
             "user.first_name, user.last_name, user.password, user.email, user.salt, user.created_at AS 'user_created', " +
-            "line_item.id AS 'line_item_id', line_item.product_id, line_item.price AS 'line_item_price', line_item.quantity, " +
+            "line_item.id AS 'line_item_id', line_item.price AS 'line_item_price', line_item.quantity, " +
             "product.id AS 'product_id', product.product_name, product.sku, product.price AS 'product_price', product.description, " +
             "product.stock, product.created_at AS 'product_created', orders.billing_address_id, billingAddress.name AS 'billingName', " +
             "billingAddress.city AS 'billingCity', billingAddress.zipcode AS 'billingZipcode', billingAddress.street_address AS 'billingStreet', " +
@@ -93,21 +94,24 @@ public class OrderController {
             "ORDER BY orders.id ASC;";
 
 
+    //Executing statement,saving it in ResultSet
     ResultSet rs = dbCon.query(sql);
+
+    //Preparing the order array to be returned
     ArrayList<Order> orders = new ArrayList<>();
 
-    //Necessary variables/placeholders
-    int currentOrderId = 0;
-    int lineNo;
+    //Necessary variables/placeholders for loop through ResultSet to work
     ArrayList<LineItem> currentLineItems = null;
     Order currentOrder = null;
-
+    int lineNo; //The current order_id value at current iteration through ResultSet
+    int currentOrderId = 0; //The current order we are processing in the loop
 
     try {
       while (rs.next()){
 
         lineNo = rs.getInt("order_id");
 
+        //If the lineNo is not the currentOrder, that means we have arrived at a new order
         if (lineNo != currentOrderId) {
 
           //Adding previous order to list, unless this is the first line in the resultSet
@@ -115,6 +119,8 @@ public class OrderController {
             currentOrder.setLineItems(currentLineItems);
             orders.add(currentOrder);
           }
+
+          //Setting the current order we are processing from the new lineNo we arrived at in the loop
           currentOrderId = lineNo;
 
           //Resetting placeholders
@@ -127,77 +133,81 @@ public class OrderController {
           currentOrder.setCreatedAt(rs.getInt("order_created"));
           currentOrder.setUpdatedAt(rs.getInt("updated_at"));
 
-          currentOrder.setCustomer(new User(
+          //Adding the customer (User) to the order
+          User user = new User(
                   rs.getInt("user_id"),
                   rs.getString("first_name"),
                   rs.getString("last_name"),
                   rs.getString("password"),
                   rs.getString("email"),
-                  rs.getString("salt"))
-          );
+                  rs.getString("salt"));
+          user.setCreatedTime(rs.getLong("user_created"));
+          currentOrder.setCustomer(user);
+
+          //Adding the addresses to the order
           currentOrder.setShippingAddress(new Address(
-                  rs.getInt("id"),
-                  rs.getString("name"),
-                  rs.getString("street_address"),
-                  rs.getString("city"),
-                  rs.getString("zipcode")
+                  rs.getInt("shipping_address_id"),
+                  rs.getString("shippingName"),
+                  rs.getString("shippingStreet"),
+                  rs.getString("shippingCity"),
+                  rs.getString("shippingZipcode")
           ));
           currentOrder.setBillingAddress(new Address(
-                  rs.getInt("id"),
-                  rs.getString("name"),
-                  rs.getString("street_address"),
-                  rs.getString("city"),
-                  rs.getString("zipcode")
+                  rs.getInt("billing_address_id"),
+                  rs.getString("billingName"),
+                  rs.getString("billingStreet"),
+                  rs.getString("billingCity"),
+                  rs.getString("billingZipcode")
           ));
 
+          //Adding the product for the lineItem
+          Product product = new Product(
+                  rs.getInt("product_id"),
+                  rs.getString("product_name"),
+                  rs.getString("sku"),
+                  rs.getFloat("product_price"),
+                  rs.getString("description"),
+                  rs.getInt("stock"));
+          product.setCreatedTime(rs.getLong("product_created"));
 
           //Adding the first lineItem
           LineItem lineItem = new LineItem(
-                  rs.getInt("id"),
-                  new Product(
-                          rs.getInt("id"),
-                          rs.getString("product_name"),
-                          rs.getString("sku"),
-                          rs.getFloat("price"),
-                          rs.getString("description"),
-                          rs.getInt("stock")),
+                  rs.getInt("line_item_id"),
+                  product,
                   rs.getInt("quantity"),
-                  rs.getFloat("price"));
+                  rs.getFloat("line_item_price"));
 
           currentLineItems.add(lineItem);
 
+
+          //If the lineNo == current order, that means that we have arrived at a new lineItem in the loop, but for the same order
         } else {
+
+          //Adding the product for the next lineItem
+          Product product = new Product(
+                  rs.getInt("product_id"),
+                  rs.getString("product_name"),
+                  rs.getString("sku"),
+                  rs.getFloat("product_price"),
+                  rs.getString("description"),
+                  rs.getInt("stock"));
+          product.setCreatedTime(rs.getLong("product_created"));
 
           //Adding next lineItem to the existing order
           LineItem lineItem = new LineItem(
-                  rs.getInt("id"),
-                  new Product(
-                          rs.getInt("id"),
-                          rs.getString("product_name"),
-                          rs.getString("sku"),
-                          rs.getFloat("price"),
-                          rs.getString("description"),
-                          rs.getInt("stock")),
+                  rs.getInt("line_item_id"),
+                  product,
                   rs.getInt("quantity"),
-                  rs.getFloat("price"));
+                  rs.getFloat("line_item_price"));
 
-          currentLineItems.add(lineItem);
-
+          if (currentLineItems != null){
+            currentLineItems.add(lineItem);
+          }
         }
-
-
-
-
       }
-
     } catch (SQLException ex) {
       ex.printStackTrace();
     }
-
-
-
-
-
 
     return orders;
   }
