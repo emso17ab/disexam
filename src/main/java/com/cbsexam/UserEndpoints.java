@@ -18,9 +18,6 @@ import utils.Log;
 @Path("user")
 public class UserEndpoints {
 
-  private final UserCache cache = new UserCache();
-  private final Boolean cacheUpdate = Config.getCacheForceUpdate();
-
   /**
    * @param idUser
    * @return Responses
@@ -30,7 +27,7 @@ public class UserEndpoints {
   public Response getUser(@PathParam("idUser") int idUser) {
 
     // Use the ID to get the user from the controller.
-    User user = cache.getUser(idUser);
+    User user = UserCache.getUser(idUser);
 
     // TODO: FIX Add Encryption to JSON
     // Convert the user object to json in order to return the object
@@ -55,7 +52,7 @@ public class UserEndpoints {
     Log.writeLog(this.getClass().getName(), this, "Get all users", 0);
 
     // Get a list of users
-    ArrayList<User> users = cache.getUsers(cacheUpdate);
+    ArrayList<User> users = UserCache.getUsers(Config.getCacheForceUpdate());
 
     // TODO: FIX Add Encryption to JSON
     // Transfer users to json in order to return it to the user

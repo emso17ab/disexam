@@ -40,6 +40,9 @@ public class ProductController {
                 rs.getString("description"),
                 rs.getInt("stock"));
 
+        //Making sure we close the connection again
+        dbCon.closeConnection();
+
         // Return the product
         return product;
       } else {
@@ -74,6 +77,9 @@ public class ProductController {
                 rs.getFloat("price"),
                 rs.getString("description"),
                 rs.getInt("stock"));
+
+        //Making sure we close the connection again
+        dbCon.closeConnection();
 
         return product;
       } else {
@@ -119,6 +125,9 @@ public class ProductController {
         }
       } catch (SQLException ex) {
         System.out.println(ex.getMessage());
+      } finally {
+        //Making sure we close the connection again
+        dbCon.closeConnection();
       }
       return products;
   }
@@ -151,6 +160,9 @@ public class ProductController {
             + ", "
             + product.getCreatedTime()
             + ")");
+
+    //Making sure we close the connection again
+    dbCon.closeConnection();
 
     if (productID != 0) {
       //Update the productid of the product before returning

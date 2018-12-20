@@ -152,6 +152,9 @@ public class OrderController {
 
     } catch (SQLException ex) {
       ex.printStackTrace();
+    } finally {
+      //Making sure we close the connection again
+      dbCon.closeConnection();
     }
 
     return currentOrder;
@@ -307,6 +310,9 @@ public class OrderController {
 
     } catch (SQLException ex) {
       ex.printStackTrace();
+    } finally {
+      //Making sure we close the connection again
+      dbCon.closeConnection();
     }
 
     return orders;
@@ -350,6 +356,9 @@ public class OrderController {
             + ", "
             + order.getUpdatedAt()
             + ")");
+
+    //Making sure we close the connection again
+    dbCon.closeConnection();
 
     if (orderID != 0) {
       //Update the productid of the product before returning

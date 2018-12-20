@@ -12,7 +12,6 @@ import utils.Log;
 public class UserController {
 
   private static User activeUser;
-
   private static DatabaseController dbCon;
 
   public UserController() {
@@ -26,6 +25,7 @@ public class UserController {
     if (dbCon == null) {
       dbCon = new DatabaseController();
     }
+
 
     // Build the query for DB
     String sql = "SELECT * FROM user where id=" + id;
@@ -46,6 +46,9 @@ public class UserController {
                 rs.getString("email"),
                 rs.getString("salt"));
 
+        //Making sure we close the connection again
+        dbCon.closeConnection();
+
         // return the create object
         return user;
       } else {
@@ -63,7 +66,7 @@ public class UserController {
     return activeUser;
   }
 
-  public static String verifyUserExists(String email) {
+  private static String verifyUserExists(String email) {
 
     // Check for connection
     if (dbCon == null) {
@@ -81,7 +84,11 @@ public class UserController {
       // Get first object, since we only have one
       if (rs.next()) {
         salt = rs.getString("salt");
+
+        //Making sure we close the connection again
+        dbCon.closeConnection();
         return salt;
+
       } else {
         System.out.println("No user found");
       }
@@ -129,6 +136,9 @@ public class UserController {
       }
     } catch (SQLException ex) {
       System.out.println(ex.getMessage());
+    } finally {
+      //Making sure to close the connection again
+      dbCon.closeConnection();
     }
 
     // Return the list of users
@@ -171,6 +181,9 @@ public class UserController {
                       + salt //Saving the salt in the database
                       + "')");
 
+      //Making sure we close the connection again
+      dbCon.closeConnection();
+
       if (userID != 0) {
         //Update the userid of the user before returning
         user.setId(userID);
@@ -209,7 +222,7 @@ public class UserController {
 
       // Actually do the query
       ResultSet rs = dbCon.query(sql);
-      User result = null;
+      User result;
 
       try {
         // Get first object, since we only have one
@@ -230,6 +243,9 @@ public class UserController {
         }
       } catch (SQLException ex) {
         System.out.println(ex.getMessage());
+      } finally {
+        //Making sure we close the connection again
+        dbCon.closeConnection();
       }
 
       //Generate token for the user
@@ -257,6 +273,9 @@ public class UserController {
         }
         int rowsAffected = dbCon.insert("DELETE FROM user WHERE id=" + user.getId());
 
+        //Making sure we close the connection again
+        dbCon.closeConnection();
+
         if (rowsAffected == 1) {
           activeUser = null;
           return true;
@@ -281,6 +300,9 @@ public class UserController {
                 "', last_name = '" + user.getLastname() +
                 "', email = '" + user.getEmail() +
                 "' WHERE id=" + user.getId() + ";");
+
+        //Making sure we close the connection again
+        dbCon.closeConnection();
 
         return rowsAffected == 1;
       }

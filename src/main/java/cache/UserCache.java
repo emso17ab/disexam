@@ -11,39 +11,42 @@ import java.util.ArrayList;
 public class UserCache {
 
     // List of users
-    private ArrayList<User> users;
+    private static ArrayList<User> users;
 
     // Time cache should live
-    private long ttl;
+    private static long ttl;
 
     // Sets when the cache has been created
-    private long created;
+    private static long created;
 
     public UserCache() {
-        this.ttl = Config.getCacheTtl();
-        this.created = System.currentTimeMillis() / 1000L;
-        this.users = new ArrayList<>();
+        ttl = Config.getCacheTtl();
+        created = System.currentTimeMillis() / 1000L;
+        users = new ArrayList<>();
+        System.out.println("Usercache was created");
     }
 
-    private Boolean requireUpdate() {
-        return ((this.created + this.ttl) < (System.currentTimeMillis() / 1000L) || this.users.isEmpty());
+    private static Boolean requireUpdate() {
+        return ((created + ttl) < (System.currentTimeMillis() / 1000L) || users.isEmpty());
     }
 
-    public ArrayList<User> getUsers(Boolean forceUpdate) {
+    public static ArrayList<User> getUsers(Boolean forceUpdate) {
         if (requireUpdate() || forceUpdate) {
             updateCache();
         }
-        return this.users;
+        System.out.println("user-cache was used");
+        System.out.println("Time to update, sec: " + (created+ttl-System.currentTimeMillis()/1000L));
+        return users;
     }
 
-    public User getUser(int userId) {
+    public static User getUser(int userId) {
         User user = null;
 
-        if (this.users.isEmpty()) {
+        if (users.isEmpty()) {
             return UserController.getUser(userId);
         }
 
-        for (User u : this.users) {
+        for (User u : users) {
             if (u.getId() == userId){
                 user = u;
             }
@@ -51,10 +54,11 @@ public class UserCache {
         return user;
     }
 
-    private void updateCache() {
-        System.out.println("cache is now updating...");
-        this.users = UserController.getUsers();
-        this.created = System.currentTimeMillis() / 1000L;
+    private static void updateCache() {
+        System.out.println("user-cache is now updating...");
+        users = UserController.getUsers();
+        created = System.currentTimeMillis() / 1000L;
+        ttl = Config.getCacheTtl();
     }
 
 }

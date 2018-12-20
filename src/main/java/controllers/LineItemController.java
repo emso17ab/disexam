@@ -52,6 +52,9 @@ public class LineItemController {
       }
     } catch (SQLException ex) {
       System.out.println(ex.getMessage());
+    } finally {
+      //Making sure we close the connection again
+      dbCon.closeConnection();
     }
 
     // Return the list, which might be empty
@@ -84,6 +87,9 @@ public class LineItemController {
             + ", "
             + lineItem.getQuantity()
             + ")");
+
+    //Making sure we close the connection again
+    dbCon.closeConnection();
 
     if (lineItemID != 0) {
       //Update the productid of the product before returning

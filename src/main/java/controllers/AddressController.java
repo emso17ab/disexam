@@ -27,7 +27,7 @@ public class AddressController {
 
     // Do the query and set the initial value to null
     ResultSet rs = dbCon.query(sql);
-    Address address = null;
+    Address address;
 
     try {
       // Get the first row and build an address object
@@ -41,6 +41,9 @@ public class AddressController {
                 rs.getString("zipcode")
                 );
 
+        //Making sure we close the connection again
+        dbCon.closeConnection();
+
         // Return our newly added object
         return address;
       } else {
@@ -51,7 +54,7 @@ public class AddressController {
     }
 
     // Returns null if we can't find anything.
-    return address;
+    return null;
   }
 
   public static Address createAddress(Address address) {
@@ -75,6 +78,8 @@ public class AddressController {
             + "', '"
             + address.getStreetAddress()
             + "')");
+    //Making sure we close the connection again
+    dbCon.closeConnection();
 
     if (addressID != 0) {
       //Update the productid of the product before returning

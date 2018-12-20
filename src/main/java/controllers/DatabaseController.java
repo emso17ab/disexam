@@ -26,7 +26,7 @@ public class DatabaseController {
    *
    * @return a Connection object
    */
-  public static Connection getConnection() {
+  private Connection getConnection() {
     try {
       // Set the dataabase connect with the data from the config
       String url =
@@ -54,7 +54,7 @@ public class DatabaseController {
     return connection;
   }
 
-  public static Session getSession() {
+  private Session getSession() {
     try {
       //Set connection credentials
       String host = Config.getSshTunnelHost();
@@ -75,8 +75,7 @@ public class DatabaseController {
       session.setConfig(config);
       session.connect();
       session.setPortForwardingL(tunnelLocalPort,tunnelRemoteHost,tunnelRemotePort);
-      System.out.println("Connected");
-      System.out.println(session.getServerVersion());
+      System.out.println("Connected on " + session.getServerVersion());
 
     } catch (Exception e) {
       System.out.println(e.getMessage());
@@ -91,8 +90,7 @@ public class DatabaseController {
    */
   public ResultSet query(String sql) {
 
-    // Check if we have a connection
-    if (connection == null)
+    // Get connection
       connection = getConnection();
 
 
@@ -121,8 +119,7 @@ public class DatabaseController {
     // Set key to 0 as a start
     int result = 0;
 
-    // Check that we have connection
-    if (connection == null)
+    // Get connection
       connection = getConnection();
 
     try {
@@ -144,5 +141,14 @@ public class DatabaseController {
 
     // Return the resultset which at this point will be null
     return result;
+  }
+
+  public void closeConnection() {
+    try {
+      //Make sure we close the connection again
+      connection.close();
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
   }
 }

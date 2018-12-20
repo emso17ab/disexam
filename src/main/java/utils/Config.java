@@ -149,7 +149,7 @@ public final class Config {
     SOLR_PORT = Integer.parseInt(json.get("SOLR_PORT").toString().replace("\"", ""));
     SOLR_PATH = json.get("SOLR_PATH").toString().replace("\"", "");
     SOLR_CORE = json.get("SOLR_CORE").toString().replace("\"", "");
-    CACHE_TTL = json.get("PRODUCT_TTL").getAsLong();
+    CACHE_TTL = json.get("CACHE_TTL").getAsLong();
     CACHE_FORCE_UPDATE = json.get("CACHE_FORCE_UPDATE").getAsBoolean();
     TOKEN_TTL = json.get("TOKEN_TTL").getAsLong();
     AUTHENTICATOR_KEY = json.get("AUTHENTICATOR_KEY").toString().replace("\"","");

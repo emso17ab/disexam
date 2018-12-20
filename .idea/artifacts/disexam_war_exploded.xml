@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="exploded-war" name="disexam:war exploded">
+  <artifact type="exploded-war" name="disexam_war_exploded">
     <output-path>$PROJECT_DIR$/out/artifacts/disexam_war_exploded</output-path>
     <root id="root">
       <element id="javaee-facet-resources" facet="disexam/web/Web" />

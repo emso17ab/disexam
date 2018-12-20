@@ -9,35 +9,39 @@ import java.util.ArrayList;
 public class OrderCache {
 
     // List of products
-    private ArrayList<Order> orders;
+    private static ArrayList<Order> orders;
 
     // Time cache should live
-    private long ttl;
+    private static long ttl;
 
     // Sets when the cache has been created
-    private long created;
+    private static long created;
 
-    public OrderCache() {
-        this.ttl = Config.getCacheTtl();
-        this.created = System.currentTimeMillis() / 1000L;
-        this.orders = new ArrayList<>();
+    private OrderCache() {
+        ttl = Config.getCacheTtl();
+        created = System.currentTimeMillis() / 1000L;
+        orders = new ArrayList<>();
     }
 
-    private Boolean requireUpdate() {
-        return ((this.created + this.ttl) < (System.currentTimeMillis() / 1000L) || this.orders.isEmpty());
+    private static Boolean requireUpdate() {
+        return ((created + ttl) < (System.currentTimeMillis() / 1000L) || orders.isEmpty());
     }
 
-    public ArrayList<Order> getOrders(Boolean forceUpdate) {
+    public static ArrayList<Order> getOrders(Boolean forceUpdate) {
         if (requireUpdate() || forceUpdate) {
             updateCache();
         }
-        return this.orders;
+
+        System.out.println("order-cache was used");
+        System.out.println("Time to update, sec: " + (created+ttl-System.currentTimeMillis()/1000L));
+        return orders;
     }
 
-    private void updateCache() {
-        System.out.println("cache is now updating...");
-        this.orders = OrderController.getOrders();
-        this.created = System.currentTimeMillis() / 1000L;
+    private static void updateCache() {
+        System.out.println("order-cache is now updating...");
+        ttl = Config.getCacheTtl();
+        orders = OrderController.getOrders();
+        created = System.currentTimeMillis() / 1000L;
     }
 
 }

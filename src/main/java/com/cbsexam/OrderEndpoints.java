@@ -18,8 +18,6 @@ import utils.Encryption;
 @Path("order")
 public class OrderEndpoints {
 
-    private final OrderCache cache = new OrderCache();
-    private final Boolean cacheUpdate = Config.getCacheForceUpdate();
 
   /**
    * @param idOrder
@@ -47,7 +45,7 @@ public class OrderEndpoints {
   public Response getOrders() {
 
     // Call our controller-layer in order to get the order from the DB
-    ArrayList<Order> orders = cache.getOrders(cacheUpdate);
+    ArrayList<Order> orders = OrderCache.getOrders(Config.getCacheForceUpdate());
 
     // We convert the java object to json with GSON library imported in Maven
     String json = new Gson().toJson(orders);
