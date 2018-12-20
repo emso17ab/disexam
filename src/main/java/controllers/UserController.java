@@ -32,7 +32,7 @@ public class UserController {
 
     // Actually do the query
     ResultSet rs = dbCon.query(sql);
-    User user = null;
+    User user;
 
     try {
       // Get first object, since we only have one
@@ -56,7 +56,7 @@ public class UserController {
     }
 
     // Return null
-    return user;
+    return null;
   }
 
   public static User getActiveUser() {

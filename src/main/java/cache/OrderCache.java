@@ -1,5 +1,6 @@
 package cache;
 
+import controllers.OrderController;
 import model.Order;
 import utils.Config;
 import java.util.ArrayList;
@@ -22,17 +23,20 @@ public class OrderCache {
         this.orders = new ArrayList<>();
     }
 
-    public Boolean requireUpdate() {
+    private Boolean requireUpdate() {
         return ((this.created + this.ttl) < (System.currentTimeMillis() / 1000L) || this.orders.isEmpty());
     }
 
-    public ArrayList<Order> getOrders() {
+    public ArrayList<Order> getOrders(Boolean forceUpdate) {
+        if (requireUpdate() || forceUpdate) {
+            updateCache();
+        }
         return this.orders;
     }
 
-    //Method to update cahce i.e. the OrderController can populate the cache with data from recent database call
-    public void updateCache(ArrayList<Order> orders) {
-        this.orders = orders;
+    private void updateCache() {
+        System.out.println("cache is now updating...");
+        this.orders = OrderController.getOrders();
         this.created = System.currentTimeMillis() / 1000L;
     }
 

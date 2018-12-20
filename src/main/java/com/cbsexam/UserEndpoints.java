@@ -30,7 +30,7 @@ public class UserEndpoints {
   public Response getUser(@PathParam("idUser") int idUser) {
 
     // Use the ID to get the user from the controller.
-    User user = UserController.getUser(idUser);
+    User user = cache.getUser(idUser);
 
     // TODO: FIX Add Encryption to JSON
     // Convert the user object to json in order to return the object
@@ -39,7 +39,7 @@ public class UserEndpoints {
 
     // TODO: FIX What should happen if something breaks down?
     if (user == null) {
-      return Response.status(400).entity("Could not create user").build();
+      return Response.status(400).entity("Could not get user").build();
     }
 
     // Return the user with the status code 200
@@ -61,6 +61,10 @@ public class UserEndpoints {
     // Transfer users to json in order to return it to the user
     String json = new Gson().toJson(users);
     json = Encryption.encryptDecryptXOR(json);
+
+    if (users == null) {
+      return Response.status(400).entity("Could not get users").build();
+    }
 
     // Return the users with the status code 200
     return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();

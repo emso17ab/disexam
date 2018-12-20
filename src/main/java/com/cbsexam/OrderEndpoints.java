@@ -1,5 +1,6 @@
 package com.cbsexam;
 
+import cache.OrderCache;
 import com.google.gson.Gson;
 import controllers.OrderController;
 import java.util.ArrayList;
@@ -11,10 +12,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import model.Order;
+import utils.Config;
 import utils.Encryption;
 
 @Path("order")
 public class OrderEndpoints {
+
+    private final OrderCache cache = new OrderCache();
+    private final Boolean cacheUpdate = Config.getCacheForceUpdate();
 
   /**
    * @param idOrder
@@ -42,12 +47,17 @@ public class OrderEndpoints {
   public Response getOrders() {
 
     // Call our controller-layer in order to get the order from the DB
-    ArrayList<Order> orders = OrderController.getOrders();
+    ArrayList<Order> orders = cache.getOrders(cacheUpdate);
 
-    // TODO: FIX Add Encryption to JSON
     // We convert the java object to json with GSON library imported in Maven
     String json = new Gson().toJson(orders);
+
+    // TODO: FIX Add Encryption to JSON
     json = Encryption.encryptDecryptXOR(json);
+
+    if (orders == null){
+        return Response.status(400).entity("Could not get products").build();
+    }
 
     // Return a response with status 200 and JSON as type
     return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();

@@ -2,6 +2,7 @@ package cache;
 
 import controllers.ProductController;
 import controllers.UserController;
+import model.Product;
 import model.User;
 import utils.Config;
 import java.util.ArrayList;
@@ -33,6 +34,21 @@ public class UserCache {
             updateCache();
         }
         return this.users;
+    }
+
+    public User getUser(int userId) {
+        User user = null;
+
+        if (this.users.isEmpty()) {
+            return UserController.getUser(userId);
+        }
+
+        for (User u : this.users) {
+            if (u.getId() == userId){
+                user = u;
+            }
+        }
+        return user;
     }
 
     private void updateCache() {
