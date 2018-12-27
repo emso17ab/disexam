@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="disexam_war_nocache">
+    <output-path>$PROJECT_DIR$/out/artifacts/disexam_war_nocache</output-path>
+    <root id="archive" name="disexam_war_nocache.war">
+      <element id="artifact" artifact-name="disexam_war_exploded" />
+    </root>
+  </artifact>
+</component>

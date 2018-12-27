@@ -43,6 +43,7 @@ public class UserEndpoints {
     return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
   }
 
+
   /** @return Responses */
   @GET
   @Path("/")
@@ -67,6 +68,7 @@ public class UserEndpoints {
     return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();
   }
 
+
   @POST
   @Path("/")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -90,6 +92,7 @@ public class UserEndpoints {
     }
   }
 
+
   // TODO: FIX Make the system able to login users and assign them a token to use throughout the system.
   @POST
   @Path("/login")
@@ -108,6 +111,7 @@ public class UserEndpoints {
       return Response.status(400).entity("Login failed, check your credentials").build();
     }
   }
+
 
   @POST
   @Path("/login")
@@ -174,6 +178,7 @@ public class UserEndpoints {
     return Response.status(400).entity("Something went wrong!").build();
   }
 
+
   // TODO: FIX Make the system able to update users
   @POST
   @Path("/update")
@@ -190,6 +195,7 @@ public class UserEndpoints {
       return Response.status(200).entity("User was not updated").build();
     }
   }
+
 
   @GET
   @Path("/profile")

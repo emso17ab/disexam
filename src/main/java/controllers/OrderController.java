@@ -332,12 +332,19 @@ public class OrderController {
       dbCon = new DatabaseController();
     }
 
+    //      FROM HERE THE TRANSACTION SHOULD START
+
     // Save addresses to database and save them back to initial order instance
     order.setBillingAddress(AddressController.createAddress(order.getBillingAddress()));
     order.setShippingAddress(AddressController.createAddress(order.getShippingAddress()));
 
     // Save the user to the database and save them back to initial order instance
-    order.setCustomer(UserController.createUser(order.getCustomer()));
+    //But does this make sense? The user making the order would already be logged in and in the DB
+
+    //order.setCustomer(UserController.createUser(order.getCustomer()));
+
+    //Setting the active user to the order
+    order.setCustomer(UserController.getActiveUser());
 
     // TODO: Enable transactions in order for us to not save the order if somethings fails for some of the other inserts.
 
@@ -361,7 +368,7 @@ public class OrderController {
     dbCon.closeConnection();
 
     if (orderID != 0) {
-      //Update the productid of the product before returning
+      //Update the order id of the order before returning
       order.setId(orderID);
     }
 
