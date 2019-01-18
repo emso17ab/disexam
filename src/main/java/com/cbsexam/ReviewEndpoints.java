@@ -34,10 +34,10 @@ public class ReviewEndpoints {
   @POST
   @Path("/title/")
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-  public Response searchThroughForm(@FormParam("searchfield") String searchfield) {
+  public Response searchThroughForm(@FormParam("searchfield") String searchField) {
 
     // Call our controller-layer in order to get the order from the DB
-    ArrayList<Review> reviews = ReviewController.searchByTitle(searchfield);
+    ArrayList<Review> reviews = ReviewController.searchByTitle(searchField);
 
     // TODO: FIX Add Encryption to JSON
     // We convert the java object to json with GSON library imported in Maven

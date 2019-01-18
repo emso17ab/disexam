@@ -27,8 +27,8 @@ public class OrderEndpoints {
   @Path("/{idOrder}")
   public Response getOrder(@PathParam("idOrder") int idOrder) {
 
-    // Call our controller-layer in order to get the order from the DB
-    Order order = OrderController.getOrder(idOrder);
+    // Call our cache-layer first in order to get the order
+    Order order = OrderCache.getOrder(idOrder);
 
     // TODO: FIX Add Encryption to JSON
     // We convert the java object to json with GSON library imported in Maven
@@ -44,7 +44,7 @@ public class OrderEndpoints {
   @Path("/")
   public Response getOrders() {
 
-    // Call our controller-layer in order to get the order from the DB
+    // Call our cache-layer first in order to get the orders
     ArrayList<Order> orders = OrderCache.getOrders(Config.getCacheForceUpdate());
 
     // We convert the java object to json with GSON library imported in Maven
@@ -54,7 +54,7 @@ public class OrderEndpoints {
     json = Encryption.encryptDecryptXOR(json);
 
     if (orders == null){
-        return Response.status(400).entity("Could not get products").build();
+        return Response.status(400).entity("Could not get orders").build();
     }
 
     // Return a response with status 200 and JSON as type
@@ -69,7 +69,7 @@ public class OrderEndpoints {
     // Read the json from body and transfer it to a order class
     Order newOrder = new Gson().fromJson(body, Order.class);
 
-    // Use the controller to add the user
+    // Use the controller to create the order
     Order createdOrder = OrderController.createOrder(newOrder);
 
     // Get the user back with the added ID and return it to the user

@@ -23,7 +23,7 @@ public class ProductEndpoints {
   @Path("/{idProduct}")
   public Response getProduct(@PathParam("idProduct") int idProduct) {
 
-    // Call our controller-layer in order to get the order from the DB
+    // Call our cache-layer first in order to get the product
     Product product = ProductCache.getProduct(idProduct);
 
     // TODO: FIX Add Encryption to JSON
@@ -41,15 +41,13 @@ public class ProductEndpoints {
   @Path("/")
   public Response getProducts() {
 
-    // Call our controller-layer in order to get the order from the DB
+    // Call our cache-layer first in order to get the products
     ArrayList<Product> products = ProductCache.getProducts(Config.getCacheForceUpdate());
 
     // TODO: FIX Add Encryption to JSON
     // We convert the java object to json with GSON library imported in Maven
     String json = new Gson().toJson(products);
     json = Encryption.encryptDecryptXOR(json);
-
-    System.out.println(json);
 
     // Return a response with status 200 and JSON as type
     return Response.status(200).type(MediaType.APPLICATION_JSON).entity(json).build();

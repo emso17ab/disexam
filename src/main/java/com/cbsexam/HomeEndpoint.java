@@ -1,5 +1,7 @@
 package com.cbsexam;
 
+import controllers.UIController;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
@@ -15,27 +17,7 @@ public class HomeEndpoint {
     @Path("/")
     public Response getLoginPage() {
 
-        // Read File and store input
-        InputStream input = HomeEndpoint.class.getResourceAsStream("/LoginPage.html");
-        BufferedReader reader = new BufferedReader(new InputStreamReader(input));
-
-        // Go through the lines one by one
-        StringBuffer stringBuffer = new StringBuffer();
-        String str;
-
-        // Read file one line at a time
-        try {
-            while ((str = reader.readLine()) != null) {
-                stringBuffer.append(str);
-            }
-        }catch (Exception e){
-            System.out.println(e);
-        }
-
-        String htmlString = stringBuffer.toString();
-
-
-        return Response.status(200).type(MediaType.TEXT_HTML_TYPE).entity(htmlString).build();
+        return Response.status(200).type(MediaType.TEXT_HTML_TYPE).entity(UIController.getPage("/LoginPage.html")).build();
     }
 
 }

@@ -223,6 +223,7 @@ public class UserController {
       // Actually do the query
       ResultSet rs = dbCon.query(sql);
       User result;
+      Boolean userNotFound = false;
 
       try {
         // Get first object, since we only have one
@@ -240,12 +241,17 @@ public class UserController {
           activeUser = result;
         } else {
           System.out.println("No user found");
+          userNotFound = true;
         }
       } catch (SQLException ex) {
         System.out.println(ex.getMessage());
       } finally {
         //Making sure we close the connection again
         dbCon.closeConnection();
+      }
+
+      if (userNotFound){
+        return null;
       }
 
       //Generate token for the user
@@ -258,7 +264,12 @@ public class UserController {
       } else {
         return null;
       }
-    } return null;
+    }
+    return null;
+  }
+
+  public static void logout() {
+      activeUser = null;
   }
 
   public static Boolean deleteUser(User user) throws io.jsonwebtoken.SignatureException {

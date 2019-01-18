@@ -2,6 +2,7 @@ package com.cbsexam;
 
 import cache.UserCache;
 import com.google.gson.Gson;
+import controllers.UIController;
 import controllers.UserController;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -26,7 +27,7 @@ public class UserEndpoints {
   @Path("/{idUser}")
   public Response getUser(@PathParam("idUser") int idUser) {
 
-    // Use the ID to get the user from the controller.
+    // Use the ID to get the user from the cache
     User user = UserCache.getUser(idUser);
 
     // TODO: FIX Add Encryption to JSON
@@ -75,16 +76,16 @@ public class UserEndpoints {
   public Response createUser(String body) {
 
     // Read the json from body and transfer it to a user class
-    User newUser = new Gson().fromJson(body, User.class);
+    User createUser = new Gson().fromJson(body, User.class);
 
     // Use the controller to add the user
-    User createUser = UserController.createUser(newUser);
+    User newUser = UserController.createUser(createUser);
 
     // Get the user back with the added ID and return it to the user
-    String json = new Gson().toJson(createUser);
+    String json = new Gson().toJson(newUser);
 
     // Return the data to the user
-    if (createUser != null) {
+    if (newUser != null) {
       // Return a response with status 200 and JSON as type
       return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
     } else {
@@ -100,9 +101,10 @@ public class UserEndpoints {
   public Response loginUser(String body) {
 
     // Read the json from body and transfer it to a user class
-    User userInput = new Gson().fromJson(body, User.class);
-    // Use the controller to verify and login the user
-    User verifiedUser = UserController.login(userInput);
+    User unAuthUser = new Gson().fromJson(body, User.class);
+
+    // Use the controller to verify user and login
+    User verifiedUser = UserController.login(unAuthUser);
     String json = new Gson().toJson(verifiedUser);
 
     if (verifiedUser != null && verifiedUser.getToken() != null) {
@@ -118,41 +120,32 @@ public class UserEndpoints {
   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
   public Response loginUserThroughForm (@FormParam("username") String email, @FormParam("password") String password) {
 
-    User user = new User();
-    user.setEmail(email);
-    user.setPassword(password);
-    System.out.println(user.getEmail() + user.getPassword());
+    User unAuthUser = new User();
+    unAuthUser.setEmail(email);
+    unAuthUser.setPassword(password);
     String responseHtmlString;
 
-    // Use the controller to verify and login the user
-    User activeUser = UserController.login(user);
-    if (activeUser != null) {
+    // Use the controller to verify user and login
+    User verifiedUser = UserController.login(unAuthUser);
+
+    if (verifiedUser != null && verifiedUser.getToken() != null) {
       responseHtmlString = "/OnSuccessPage.html";
     } else {
-      // Return a response with status 200 and JSON as type
       responseHtmlString = "/OnFailurePage.html";
     }
+    // Return a response with status 200 and JSON as type
+    return Response.status(200).type(MediaType.TEXT_HTML_TYPE).entity(UIController.getPage(responseHtmlString)).build();
+  }
 
-    // Read File and store input
-    InputStream input = UserEndpoints.class.getResourceAsStream(responseHtmlString);
-    BufferedReader reader = new BufferedReader(new InputStreamReader(input));
 
-    // Go through the lines one by one
-    StringBuffer stringBuffer = new StringBuffer();
-    String str;
+  @GET
+  @Path("/logout")
+  public Response logout() {
 
-    // Read file one line at a time
-    try {
-      while ((str = reader.readLine()) != null) {
-        stringBuffer.append(str);
-      }
-    }catch (Exception e){
-      e.printStackTrace();
-    }
+    UserController.logout();
 
-    String htmlString = stringBuffer.toString();
+    return Response.status(200).type(MediaType.TEXT_HTML_TYPE).entity(UIController.getPage("/LoginPage.html")).build();
 
-    return Response.status(200).type(MediaType.TEXT_HTML_TYPE).entity(htmlString).build();
   }
 
 
@@ -164,16 +157,16 @@ public class UserEndpoints {
 
     // Read the json from body and transfer it to a user class
     User deleteMe = new Gson().fromJson(body, User.class);
-    Boolean delete;
+    Boolean wasDeleted;
 
     //Check first if the user has accepted to delete his/her user profile
     if (deleteMe.isEraseMe()){
-      delete = UserController.deleteUser(deleteMe);
-      if (delete) {
+        wasDeleted = UserController.deleteUser(deleteMe);
+      if (wasDeleted) {
         return Response.status(200).entity("User was successfully deleted!").build();
       }
     }else {
-      return Response.status(200).entity("User was not deleted").build();
+      return Response.status(200).entity("User could not be deleted").build();
     }
     return Response.status(400).entity("Something went wrong!").build();
   }
@@ -186,10 +179,10 @@ public class UserEndpoints {
   public Response updateUser(String body) {
 
     User updateMe = new Gson().fromJson(body, User.class);
-    Boolean update;
+    Boolean wasUpdated;
 
-    update = UserController.updateUser(updateMe);
-    if (update) {
+    wasUpdated = UserController.updateUser(updateMe);
+    if (wasUpdated) {
       return Response.status(200).entity("User was successfully updated!").build();
     } else {
       return Response.status(200).entity("User was not updated").build();
@@ -202,6 +195,7 @@ public class UserEndpoints {
   public Response profile() {
 
     String json = new Gson().toJson(UserController.getActiveUser());
+
     return Response.status(200).type(MediaType.APPLICATION_JSON_TYPE).entity(json).build();
 
   }
