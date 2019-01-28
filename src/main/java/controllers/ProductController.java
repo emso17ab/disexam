@@ -3,23 +3,20 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import datasource.DbService;
 import model.Product;
 import utils.Log;
 
 public class ProductController {
 
-  private static DatabaseController dbCon;
+
+  private static DbService dbCon;
 
   public ProductController() {
-    dbCon = new DatabaseController();
   }
 
   public static Product getProduct(int id) {
-
-    // check for connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     // Build the SQL query for the DB
     String sql = "SELECT * FROM product where id=" + id;
@@ -40,9 +37,6 @@ public class ProductController {
                 rs.getString("description"),
                 rs.getInt("stock"));
 
-        //Making sure we close the connection again
-        dbCon.closeConnection();
-
         // Return the product
         return product;
       } else {
@@ -57,10 +51,6 @@ public class ProductController {
   }
 
   public static Product getProductBySku(String sku) {
-
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     String sql = "SELECT * FROM product where sku='" + sku + "'";
 
@@ -77,9 +67,6 @@ public class ProductController {
                 rs.getFloat("price"),
                 rs.getString("description"),
                 rs.getInt("stock"));
-
-        //Making sure we close the connection again
-        dbCon.closeConnection();
 
         return product;
       } else {
@@ -98,10 +85,6 @@ public class ProductController {
    * @return
    */
   public static ArrayList<Product> getProducts() {
-
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     // TODO FIX: Use caching layer.
 
@@ -125,9 +108,6 @@ public class ProductController {
         }
       } catch (SQLException ex) {
         System.out.println(ex.getMessage());
-      } finally {
-        //Making sure we close the connection again
-        dbCon.closeConnection();
       }
       return products;
   }
@@ -139,11 +119,6 @@ public class ProductController {
 
     // Set creation time for product.
     product.setCreatedTime(System.currentTimeMillis() / 1000L);
-
-    // Check for DB Connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     // Insert the product in the DB
     int productID = dbCon.insert(
@@ -160,9 +135,6 @@ public class ProductController {
             + ", "
             + product.getCreatedTime()
             + ")");
-
-    //Making sure we close the connection again
-    dbCon.closeConnection();
 
     if (productID != 0) {
       //Update the productid of the product before returning

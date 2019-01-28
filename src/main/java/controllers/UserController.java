@@ -3,6 +3,7 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import datasource.DbService;
 import io.jsonwebtoken.Claims;
 import model.User;
 import utils.Authenticator;
@@ -12,20 +13,13 @@ import utils.Log;
 public class UserController {
 
   private static User activeUser;
-  private static DatabaseController dbCon;
+  private static DbService dbCon;
 
   public UserController() {
-    dbCon = new DatabaseController();
     activeUser = new User();
   }
 
   public static User getUser(int id) {
-
-    // Check for connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
-
 
     // Build the query for DB
     String sql = "SELECT * FROM user where id=" + id;
@@ -46,9 +40,6 @@ public class UserController {
                 rs.getString("email"),
                 rs.getString("salt"));
 
-        //Making sure we close the connection again
-        dbCon.closeConnection();
-
         // return the create object
         return user;
       } else {
@@ -57,8 +48,6 @@ public class UserController {
     } catch (SQLException ex) {
       System.out.println(ex.getMessage());
     }
-
-    // Return null
     return null;
   }
 
@@ -67,11 +56,6 @@ public class UserController {
   }
 
   private static String verifyUserExists(String email) {
-
-    // Check for connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     // Build the query for DB
     String sql = "SELECT * FROM user where email='" + email + "'";
@@ -85,8 +69,6 @@ public class UserController {
       if (rs.next()) {
         salt = rs.getString("salt");
 
-        //Making sure we close the connection again
-        dbCon.closeConnection();
         return salt;
 
       } else {
@@ -106,43 +88,7 @@ public class UserController {
    * @return
    */
   public static ArrayList<User> getUsers() {
-
-    // Check for DB connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
-
-    // Build SQL
-    String sql = "SELECT * FROM user";
-
-    // Do the query and initialyze an empty list for use if we don't get results
-    ResultSet rs = dbCon.query(sql);
-    ArrayList<User> users = new ArrayList<User>();
-
-    try {
-      // Loop through DB Data
-      while (rs.next()) {
-        User user =
-            new User(
-                rs.getInt("id"),
-                rs.getString("first_name"),
-                rs.getString("last_name"),
-                rs.getString("password"),
-                rs.getString("email"),
-                rs.getString("salt"));
-
-        // Add element to list
-        users.add(user);
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
-    } finally {
-      //Making sure to close the connection again
-      dbCon.closeConnection();
-    }
-
-    // Return the list of users
-    return users;
+    return DbService.getUsers();
   }
 
   public static User createUser(User user) {
@@ -152,11 +98,6 @@ public class UserController {
 
     // Set creation time for user.
     user.setCreatedTime(System.currentTimeMillis() / 1000L);
-
-    // Check for DB Connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     // Check that email is not already used
     if (verifyUserExists(user.getEmail()) == null) {
@@ -181,9 +122,6 @@ public class UserController {
                       + salt //Saving the salt in the database
                       + "')");
 
-      //Making sure we close the connection again
-      dbCon.closeConnection();
-
       if (userID != 0) {
         //Update the userid of the user before returning
         user.setId(userID);
@@ -206,11 +144,6 @@ public class UserController {
 
     //Verify that user exists in the database and get salt
     String salt = verifyUserExists(user.getEmail());
-
-    // Check for DB Connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     if (salt != null) {
 
@@ -245,11 +178,7 @@ public class UserController {
         }
       } catch (SQLException ex) {
         System.out.println(ex.getMessage());
-      } finally {
-        //Making sure we close the connection again
-        dbCon.closeConnection();
       }
-
       if (userNotFound){
         return null;
       }
@@ -278,14 +207,7 @@ public class UserController {
 
       if (Integer.parseInt(claims.getId()) == user.getId()) {
 
-        // Check for DB Connection
-        if (dbCon == null) {
-          dbCon = new DatabaseController();
-        }
         int rowsAffected = dbCon.insert("DELETE FROM user WHERE id=" + user.getId());
-
-        //Making sure we close the connection again
-        dbCon.closeConnection();
 
         if (rowsAffected == 1) {
           activeUser = null;
@@ -301,19 +223,11 @@ public class UserController {
 
       if (Integer.parseInt(claims.getId()) == user.getId()) {
 
-        //Check for DB Connection
-        if (dbCon == null) {
-          dbCon = new DatabaseController();
-        }
-
         int rowsAffected = dbCon.insert("UPDATE user SET " +
                 "first_name = '" + user.getFirstname() +
                 "', last_name = '" + user.getLastname() +
                 "', email = '" + user.getEmail() +
                 "' WHERE id=" + user.getId() + ";");
-
-        //Making sure we close the connection again
-        dbCon.closeConnection();
 
         return rowsAffected == 1;
       }

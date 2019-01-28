@@ -3,24 +3,18 @@ package controllers;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.mysql.cj.protocol.Resultset;
+import datasource.DbService;
 import model.Address;
 import utils.Log;
 
 public class AddressController {
 
-  private static DatabaseController dbCon;
+  private static DbService dbCon;
 
   public AddressController() {
-    dbCon = new DatabaseController();
   }
 
   public static Address getAddress(int id) {
-
-    // Check for DB Connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     // Our SQL string
     String sql = "SELECT * FROM address where id=" + id;
@@ -41,9 +35,6 @@ public class AddressController {
                 rs.getString("zipcode")
                 );
 
-        //Making sure we close the connection again
-        dbCon.closeConnection();
-
         // Return our newly added object
         return address;
       } else {
@@ -62,11 +53,6 @@ public class AddressController {
     // Write in log that we've reach this step
     Log.writeLog(ProductController.class.getName(), address, "Actually creating a line item in DB", 0);
 
-    // Check for DB Connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
-
     // Insert the product in the DB
     int addressID = dbCon.insert(
         "INSERT INTO address(name, city, zipcode, street_address) VALUES('"
@@ -78,8 +64,6 @@ public class AddressController {
             + "', '"
             + address.getStreetAddress()
             + "')");
-    //Making sure we close the connection again
-    dbCon.closeConnection();
 
     if (addressID != 0) {
       //Update the productid of the product before returning

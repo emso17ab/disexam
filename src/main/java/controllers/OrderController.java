@@ -1,26 +1,22 @@
 package controllers;
 
-import java.nio.file.AccessDeniedException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import datasource.DbService;
 import model.*;
 import utils.Log;
 
 public class OrderController {
 
-  private static DatabaseController dbCon;
+
+  private static DbService dbCon;
 
   public OrderController() {
-    dbCon = new DatabaseController();
   }
 
   public static Order getOrder(int id) {
-
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     //Preparing sql String for join query
     String sql = "SELECT orders.id AS 'order_id', orders.user_id, " +
@@ -152,9 +148,6 @@ public class OrderController {
 
     } catch (SQLException ex) {
       ex.printStackTrace();
-    } finally {
-      //Making sure we close the connection again
-      dbCon.closeConnection();
     }
 
     return currentOrder;
@@ -166,10 +159,6 @@ public class OrderController {
    * @return
    */
   public static ArrayList<Order> getOrders() {
-
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     //Preparing sql String for join query
     String sql = "SELECT orders.id AS 'order_id', orders.user_id, " +
@@ -310,11 +299,7 @@ public class OrderController {
 
     } catch (SQLException ex) {
       ex.printStackTrace();
-    } finally {
-      //Making sure we close the connection again
-      dbCon.closeConnection();
     }
-
     return orders;
   }
 
@@ -326,11 +311,6 @@ public class OrderController {
     // Set creation and updated time for order.
     order.setCreatedAt(System.currentTimeMillis() / 1000L);
     order.setUpdatedAt(System.currentTimeMillis() / 1000L);
-
-    // Check for DB Connection
-    if (dbCon == null) {
-      dbCon = new DatabaseController();
-    }
 
     //      FROM HERE THE TRANSACTION SHOULD START
 
@@ -363,9 +343,6 @@ public class OrderController {
             + ", "
             + order.getUpdatedAt()
             + ")");
-
-    //Making sure we close the connection again
-    dbCon.closeConnection();
 
     if (orderID != 0) {
       //Update the order id of the order before returning
