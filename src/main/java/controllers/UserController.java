@@ -1,7 +1,5 @@
 package controllers;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import datasource.DbService;
 import io.jsonwebtoken.Claims;
@@ -13,80 +11,23 @@ import utils.Log;
 public class UserController {
 
   private static User activeUser;
-  private static DbService dbCon;
 
   public UserController() {
     activeUser = new User();
-  }
-
-  public static User getUser(int id) {
-
-    // Build the query for DB
-    String sql = "SELECT * FROM user where id=" + id;
-
-    // Actually do the query
-    ResultSet rs = dbCon.query(sql);
-    User user;
-
-    try {
-      // Get first object, since we only have one
-      if (rs.next()) {
-        user =
-            new User(
-                rs.getInt("id"),
-                rs.getString("first_name"),
-                rs.getString("last_name"),
-                rs.getString("password"),
-                rs.getString("email"),
-                rs.getString("salt"));
-
-        // return the create object
-        return user;
-      } else {
-        System.out.println("No user found");
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
-    }
-    return null;
   }
 
   public static User getActiveUser() {
     return activeUser;
   }
 
-  private static String verifyUserExists(String email) {
-
-    // Build the query for DB
-    String sql = "SELECT * FROM user where email='" + email + "'";
-
-    // Actually do the query
-    ResultSet rs = dbCon.query(sql);
-    String salt;
-
-    try {
-      // Get first object, since we only have one
-      if (rs.next()) {
-        salt = rs.getString("salt");
-
-        return salt;
-
-      } else {
-        System.out.println("No user found");
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
-    }
-
-    // Return null
-    return null;
+  public static User getUser(int id) {
+    return DbService.getUser(id);
   }
 
-  /**
-   * Get all users in database
-   *
-   * @return
-   */
+  private static String verifyUserExists(String email) {
+    return DbService.verifyUserExists(email);
+  }
+
   public static ArrayList<User> getUsers() {
     return DbService.getUsers();
   }
@@ -102,37 +43,23 @@ public class UserController {
     // Check that email is not already used
     if (verifyUserExists(user.getEmail()) == null) {
 
-
       final String salt = Hashing.salt();
 
-      // Insert the user in the DB
       // TODO: FIX - Hash the user password before saving it.
-      int userID = dbCon.insert(
-              "INSERT INTO user(first_name, last_name, password, email, created_at, salt) VALUES('"
-                      + user.getFirstname()
-                      + "', '"
-                      + user.getLastname()
-                      + "', '"
-                      + Hashing.sha(user.getPassword() + salt) //Adding salt before hashing and saving
-                      + "', '"
-                      + user.getEmail()
-                      + "', "
-                      + user.getCreatedTime()
-                      + ", '"
-                      + salt //Saving the salt in the database
-                      + "')");
+      // Insert the user in the DB
+      int userID = DbService.createUser(user, salt);
 
       if (userID != 0) {
-        //Update the userid of the user before returning
+        //Update the userId of the user before returning
         user.setId(userID);
       } else {
         // Return null if user has not been inserted into database
         return null;
       }
     } else {
+      //Return null if email is already used
       return null;
     }
-
     // Return user
     return user;
   }
@@ -150,48 +77,19 @@ public class UserController {
       //Hashing password input from user
       String hashedPassword = Hashing.sha(user.getPassword() + salt);
 
-      // Build the query for DB
-      String sql = "SELECT * FROM user WHERE email='" + user.getEmail() + "' AND password='" + hashedPassword + "'";
+      // Execute query in DB
+      activeUser = DbService.login(user, hashedPassword);
 
-      // Actually do the query
-      ResultSet rs = dbCon.query(sql);
-      User result;
-      Boolean userNotFound = false;
+      if (activeUser != null) {
 
-      try {
-        // Get first object, since we only have one
-        if (rs.next()) {
-          result =
-                  new User(
-                          rs.getInt("id"),
-                          rs.getString("first_name"),
-                          rs.getString("last_name"),
-                          rs.getString("password"),
-                          rs.getString("email"),
-                          rs.getString("salt"));
+        //Generate token for the user
+        String token = Authenticator.createToken(activeUser.getId());
+        //Assign token to the user
+        activeUser.setToken(token);
 
-          // Store the create object
-          activeUser = result;
-        } else {
-          System.out.println("No user found");
-          userNotFound = true;
+        if (token != null) {
+          return activeUser;
         }
-      } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
-      }
-      if (userNotFound){
-        return null;
-      }
-
-      //Generate token for the user
-      String token = Authenticator.createToken(activeUser.getId());
-      //Assign token to the user
-      activeUser.setToken(token);
-
-      if (token != null) {
-        return activeUser;
-      } else {
-        return null;
       }
     }
     return null;
@@ -207,7 +105,7 @@ public class UserController {
 
       if (Integer.parseInt(claims.getId()) == user.getId()) {
 
-        int rowsAffected = dbCon.insert("DELETE FROM user WHERE id=" + user.getId());
+        int rowsAffected = DbService.deleteUser(user.getId());
 
         if (rowsAffected == 1) {
           activeUser = null;
@@ -218,20 +116,14 @@ public class UserController {
   }
 
   public static Boolean updateUser(User user) throws io.jsonwebtoken.SignatureException {
+
     try {
       Claims claims = Authenticator.verifyToken(user.getToken());
 
       if (Integer.parseInt(claims.getId()) == user.getId()) {
-
-        int rowsAffected = dbCon.insert("UPDATE user SET " +
-                "first_name = '" + user.getFirstname() +
-                "', last_name = '" + user.getLastname() +
-                "', email = '" + user.getEmail() +
-                "' WHERE id=" + user.getId() + ";");
-
-        return rowsAffected == 1;
+        //Returns true if user was successfully updated
+        return DbService.updateUser(user);
       }
-
     } catch (io.jsonwebtoken.SignatureException exception){
       return false;
     }

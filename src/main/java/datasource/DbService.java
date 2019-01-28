@@ -13,10 +13,11 @@ import com.jcraft.jsch.Session;
 import datasource.DataSource;
 import model.User;
 import utils.Config;
+import utils.Hashing;
 
 public class DbService {
 
-  //The SSH tunnel necessary to connect to DB is established in this static initialization block
+  //In this static initialization block we establish the SSH tunnel through which we get our DB connection
   static {
     try {
       //Set connection credentials
@@ -47,11 +48,6 @@ public class DbService {
 
   private DbService() {}
 
-  /**
-   * Do a query in the database
-   *
-   * @return a ResultSet or Null if Empty
-   */
   public static ResultSet query(String sql) {
 
     ResultSet rs = null;
@@ -107,6 +103,8 @@ public class DbService {
     return result;
   }
 
+  //ALL SERVICES ARE BELOW
+
   public static ArrayList<User> getUsers(){
 
     ArrayList<User> users = new ArrayList<User>();
@@ -145,5 +143,241 @@ public class DbService {
     // Return the list of users
     return users;
   }
+
+  public static User getUser(int id){
+
+    User user = null;
+
+    try {
+
+      // Get connection from the pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement as a prepared statement
+      PreparedStatement stmt = con.prepareStatement("SELECT * FROM user where id=" + id);
+
+      //Execute the statement to the DB
+      ResultSet rs = stmt.executeQuery();
+
+      if (rs.next()) {
+        user = new User(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("password"),
+                        rs.getString("email"),
+                        rs.getString("salt"));
+
+      } else {
+        System.out.println("No user found");
+      }
+
+      //Returning the connection to the pool
+      con.close();
+
+      //Return the user object
+      return user;
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+    //This will be null at this point
+    return user;
+  }
+
+  public static String verifyUserExists(String email){
+
+    String salt = null;
+
+    try {
+
+      // Get connection from the pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement as a prepared statement
+      PreparedStatement stmt = con.prepareStatement("SELECT * FROM user where email='" + email + "'");
+
+      //Execute the statement to the DB
+      ResultSet rs = stmt.executeQuery();
+
+      // Get first object, since we only have one
+      if (rs.next()) {
+        salt = rs.getString("salt");
+
+      } else {
+        System.out.println("No user found");
+      }
+
+      //Returning the connection to the pool
+      con.close();
+
+      //Return the salt String
+      return salt;
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+    //This will be null at this point
+    return salt;
+  }
+
+  public static int createUser(User user, String salt){
+
+    // Set key to 0 as a start
+    int result = 0;
+
+    //Set Sql String
+    String sql =
+            "INSERT INTO user(first_name, last_name, password, email, created_at, salt) VALUES('"
+                    + user.getFirstname()
+                    + "', '"
+                    + user.getLastname()
+                    + "', '"
+                    + Hashing.sha(user.getPassword() + salt) //Adding salt before hashing and saving
+                    + "', '"
+                    + user.getEmail()
+                    + "', "
+                    + user.getCreatedTime()
+                    + ", '"
+                    + salt //Saving the salt in the database
+                    + "')";
+
+    try {
+
+      // Get connection from pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement up in a safe way
+      PreparedStatement stmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+      // Execute query
+      stmt.executeUpdate();
+
+      // Get our key back in order to update the user
+      ResultSet generatedKeys = stmt.getGeneratedKeys();
+
+      if (generatedKeys.next()) {
+        result = generatedKeys.getInt(1);
+      }
+
+      //Return the connection to the pool
+      con.close();
+
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+    }
+    return result;
+  }
+
+  public static User login(User user, String hashedPassword){
+
+    String sql = "SELECT * FROM user WHERE email='" + user.getEmail() + "' AND password='" + hashedPassword + "'";
+    Boolean userNotFound = false;
+    User result = null;
+
+    try {
+
+      // Get connection from the pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement as a prepared statement
+      PreparedStatement stmt = con.prepareStatement(sql);
+
+      //Execute the statement to the DB
+      ResultSet rs = stmt.executeQuery();
+
+      // Get first object, since we only have one
+      if (rs.next()) {
+        result =
+                new User(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("password"),
+                        rs.getString("email"),
+                        rs.getString("salt"));
+
+      } else {
+        System.out.println("No user found");
+        userNotFound = true;
+      }
+
+      //Returning the connection to the pool
+      con.close();
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+    if (userNotFound) {
+      return null;
+    }
+    return result;
+  }
+
+  public static int deleteUser(int id){
+
+    // Set key to 0 as a start
+    int result = 0;
+
+    try {
+
+      // Get connection from pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement up in a safe way
+      PreparedStatement stmt = con.prepareStatement("DELETE FROM user WHERE id=" + id, Statement.RETURN_GENERATED_KEYS);
+
+      // Execute query
+      stmt.executeUpdate();
+
+      // Get our key back in order to update the user
+      ResultSet generatedKeys = stmt.getGeneratedKeys();
+
+      if (generatedKeys.next()) {
+        result = generatedKeys.getInt(1);
+      }
+
+      //Return the connection to the pool
+      con.close();
+
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+    }
+    return result;
+  }
+
+  public static Boolean updateUser(User user){
+
+    // Set key to 0 as a start
+    int rowsAffected = 0;
+
+  //Set Sql String
+    String sql = "UPDATE user SET " +
+            "first_name = '" + user.getFirstname() +
+            "', last_name = '" + user.getLastname() +
+            "', email = '" + user.getEmail() +
+            "' WHERE id=" + user.getId() + ";";
+
+    try {
+
+      // Get connection from pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement up in a safe way
+      PreparedStatement stmt = con.prepareStatement(sql);
+
+      // Execute query
+      rowsAffected = stmt.executeUpdate();
+
+      //Return the connection to the pool
+      con.close();
+
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+    }
+    //If user was successfully updated, this will return true
+    return rowsAffected == 1;
+  }
+
 }
 
