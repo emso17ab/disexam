@@ -46,8 +46,23 @@ public class UserController {
       final String salt = Hashing.salt();
 
       // TODO: FIX - Hash the user password before saving it.
-      // Insert the user in the DB
-      int userID = DbService.createUser(user, salt);
+      String sql =
+              "INSERT INTO user(first_name, last_name, password, email, created_at, salt) VALUES('"
+                      + user.getFirstname()
+                      + "', '"
+                      + user.getLastname()
+                      + "', '"
+                      + Hashing.sha(user.getPassword() + salt) //Adding salt before hashing and saving
+                      + "', '"
+                      + user.getEmail()
+                      + "', "
+                      + user.getCreatedTime()
+                      + ", '"
+                      + salt //Saving the salt in the database
+                      + "')";
+
+      // Create the user in the DB
+      int userID = DbService.createObject(sql);
 
       if (userID != 0) {
         //Update the userId of the user before returning
@@ -105,9 +120,7 @@ public class UserController {
 
       if (Integer.parseInt(claims.getId()) == user.getId()) {
 
-        int rowsAffected = DbService.deleteUser(user.getId());
-
-        if (rowsAffected == 1) {
+        if (DbService.deleteUser(user.getId())) {
           activeUser = null;
           return true;
         }

@@ -48,7 +48,7 @@ public class UserCache {
 
     //User endpoint calls this method. Cache is not updated and only used if exist.
     public static User getUser(int userId) {
-        if (users.isEmpty()) {
+        if (users == null || users.isEmpty()) {
             return UserController.getUser(userId);
         }
         //Iterating through the cache

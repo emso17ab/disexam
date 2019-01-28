@@ -166,7 +166,7 @@ public class UserEndpoints {
         return Response.status(200).entity("User was successfully deleted!").build();
       }
     }else {
-      return Response.status(200).entity("User could not be deleted").build();
+      return Response.status(200).entity("User was not deleted").build();
     }
     return Response.status(400).entity("Something went wrong!").build();
   }

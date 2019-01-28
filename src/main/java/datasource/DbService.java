@@ -1,16 +1,17 @@
 package datasource;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import datasource.DataSource;
+import controllers.ProductController;
+import model.Address;
+import model.LineItem;
+import model.Product;
 import model.User;
 import utils.Config;
 import utils.Hashing;
@@ -103,7 +104,165 @@ public class DbService {
     return result;
   }
 
-  //ALL SERVICES ARE BELOW
+  //---------- ALL SERVICES BELOW THIS LINE ----------
+
+  public static int createObject(String sql){
+
+    // Set key to 0 as a start
+    int result = 0;
+
+    try {
+
+      // Get connection from pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement up in a safe way
+      PreparedStatement stmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+      // Execute query
+      stmt.executeUpdate();
+
+      // Get our key back in order to update the user
+      ResultSet generatedKeys = stmt.getGeneratedKeys();
+
+      if (generatedKeys.next()) {
+        result = generatedKeys.getInt(1);
+      }
+
+      //Return the connection to the pool
+      con.close();
+
+    } catch (SQLException e) {
+      System.out.println(e.getMessage());
+    }
+    return result;
+  }
+
+  public static Address getAddress(int id){
+
+    Address address = null;
+
+    try {
+
+      // Get connection from the pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement as a prepared statement
+      PreparedStatement stmt = con.prepareStatement("SELECT * FROM address where id=" + id);
+
+      //Execute the statement to the DB
+      ResultSet rs = stmt.executeQuery();
+
+      // Get the first row and build an address object
+      if (rs.next()) {
+        address =
+                new Address(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("street_address"),
+                        rs.getString("city"),
+                        rs.getString("zipcode")
+                );
+
+      } else {
+        System.out.println("No address found");
+      }
+
+      //Returning the connection to the pool
+      con.close();
+
+      //Return the user object
+      return address;
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+
+    // Returns null if we can't find anything.
+    return null;
+  }
+  public static Product getProduct(int id){
+
+    Product product = null;
+
+    try {
+
+      // Get connection from the pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement as a prepared statement
+      PreparedStatement stmt = con.prepareStatement("SELECT * FROM product where id=" + id);
+
+      //Execute the statement to the DB
+      ResultSet rs = stmt.executeQuery();
+
+      // Get first row and create the object and return it
+      if (rs.next()) {
+        product =
+                new Product(
+                        rs.getInt("id"),
+                        rs.getString("product_name"),
+                        rs.getString("sku"),
+                        rs.getFloat("price"),
+                        rs.getString("description"),
+                        rs.getInt("stock"));
+
+      } else {
+        System.out.println("No user found");
+      }
+
+      //Returning the connection to the pool
+      con.close();
+
+      // Return the product
+      return product;
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+    // Return empty object
+    return product;
+  }
+  public static User getUser(int id){
+
+    User user = null;
+
+    try {
+
+      // Get connection from the pool
+      Connection con = DataSource.getConnection();
+
+      // Build the statement as a prepared statement
+      PreparedStatement stmt = con.prepareStatement("SELECT * FROM user where id=" + id);
+
+      //Execute the statement to the DB
+      ResultSet rs = stmt.executeQuery();
+
+      if (rs.next()) {
+        user = new User(
+                rs.getInt("id"),
+                rs.getString("first_name"),
+                rs.getString("last_name"),
+                rs.getString("password"),
+                rs.getString("email"),
+                rs.getString("salt"));
+
+      } else {
+        System.out.println("No user found");
+      }
+
+      //Returning the connection to the pool
+      con.close();
+
+      //Return the user object
+      return user;
+
+    } catch (SQLException ex) {
+      System.out.println(ex.getMessage());
+    }
+    //This will be null at this point
+    return user;
+  }
 
   public static ArrayList<User> getUsers(){
 
@@ -143,10 +302,9 @@ public class DbService {
     // Return the list of users
     return users;
   }
+  public static ArrayList<Product> getProducts(){
 
-  public static User getUser(int id){
-
-    User user = null;
+    ArrayList<Product> products = new ArrayList<>();
 
     try {
 
@@ -154,35 +312,30 @@ public class DbService {
       Connection con = DataSource.getConnection();
 
       // Build the statement as a prepared statement
-      PreparedStatement stmt = con.prepareStatement("SELECT * FROM user where id=" + id);
+      PreparedStatement stmt = con.prepareStatement("SELECT * FROM product");
 
       //Execute the statement to the DB
       ResultSet rs = stmt.executeQuery();
 
-      if (rs.next()) {
-        user = new User(
+      while (rs.next()) {
+        Product product =
+                new Product(
                         rs.getInt("id"),
-                        rs.getString("first_name"),
-                        rs.getString("last_name"),
-                        rs.getString("password"),
-                        rs.getString("email"),
-                        rs.getString("salt"));
+                        rs.getString("product_name"),
+                        rs.getString("sku"),
+                        rs.getFloat("price"),
+                        rs.getString("description"),
+                        rs.getInt("stock"));
 
-      } else {
-        System.out.println("No user found");
+        products.add(product);
       }
-
       //Returning the connection to the pool
       con.close();
-
-      //Return the user object
-      return user;
 
     } catch (SQLException ex) {
       System.out.println(ex.getMessage());
     }
-    //This will be null at this point
-    return user;
+    return products;
   }
 
   public static String verifyUserExists(String email){
@@ -220,55 +373,6 @@ public class DbService {
     //This will be null at this point
     return salt;
   }
-
-  public static int createUser(User user, String salt){
-
-    // Set key to 0 as a start
-    int result = 0;
-
-    //Set Sql String
-    String sql =
-            "INSERT INTO user(first_name, last_name, password, email, created_at, salt) VALUES('"
-                    + user.getFirstname()
-                    + "', '"
-                    + user.getLastname()
-                    + "', '"
-                    + Hashing.sha(user.getPassword() + salt) //Adding salt before hashing and saving
-                    + "', '"
-                    + user.getEmail()
-                    + "', "
-                    + user.getCreatedTime()
-                    + ", '"
-                    + salt //Saving the salt in the database
-                    + "')";
-
-    try {
-
-      // Get connection from pool
-      Connection con = DataSource.getConnection();
-
-      // Build the statement up in a safe way
-      PreparedStatement stmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-
-      // Execute query
-      stmt.executeUpdate();
-
-      // Get our key back in order to update the user
-      ResultSet generatedKeys = stmt.getGeneratedKeys();
-
-      if (generatedKeys.next()) {
-        result = generatedKeys.getInt(1);
-      }
-
-      //Return the connection to the pool
-      con.close();
-
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    }
-    return result;
-  }
-
   public static User login(User user, String hashedPassword){
 
     String sql = "SELECT * FROM user WHERE email='" + user.getEmail() + "' AND password='" + hashedPassword + "'";
@@ -313,11 +417,10 @@ public class DbService {
     }
     return result;
   }
-
-  public static int deleteUser(int id){
+  public static Boolean deleteUser(int id){
 
     // Set key to 0 as a start
-    int result = 0;
+    int rowsAffected = 0;
 
     try {
 
@@ -325,17 +428,10 @@ public class DbService {
       Connection con = DataSource.getConnection();
 
       // Build the statement up in a safe way
-      PreparedStatement stmt = con.prepareStatement("DELETE FROM user WHERE id=" + id, Statement.RETURN_GENERATED_KEYS);
+      PreparedStatement stmt = con.prepareStatement("DELETE FROM user WHERE id=" + id);
 
       // Execute query
-      stmt.executeUpdate();
-
-      // Get our key back in order to update the user
-      ResultSet generatedKeys = stmt.getGeneratedKeys();
-
-      if (generatedKeys.next()) {
-        result = generatedKeys.getInt(1);
-      }
+      rowsAffected = stmt.executeUpdate();
 
       //Return the connection to the pool
       con.close();
@@ -343,9 +439,9 @@ public class DbService {
     } catch (SQLException e) {
       System.out.println(e.getMessage());
     }
-    return result;
+    //If user was successfully deleted, this will return true
+    return rowsAffected == 1;
   }
-
   public static Boolean updateUser(User user){
 
     // Set key to 0 as a start
@@ -378,6 +474,11 @@ public class DbService {
     //If user was successfully updated, this will return true
     return rowsAffected == 1;
   }
+
+
+
+
+
 
 }
 

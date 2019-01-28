@@ -10,106 +10,16 @@ import utils.Log;
 
 public class ProductController {
 
-
-  private static DbService dbCon;
-
   public ProductController() {
   }
 
   public static Product getProduct(int id) {
-
-    // Build the SQL query for the DB
-    String sql = "SELECT * FROM product where id=" + id;
-
-    // Run the query in the DB and make an empty object to return
-    ResultSet rs = dbCon.query(sql);
-    Product product = null;
-
-    try {
-      // Get first row and create the object and return it
-      if (rs.next()) {
-        product =
-            new Product(
-                rs.getInt("id"),
-                rs.getString("product_name"),
-                rs.getString("sku"),
-                rs.getFloat("price"),
-                rs.getString("description"),
-                rs.getInt("stock"));
-
-        // Return the product
-        return product;
-      } else {
-        System.out.println("No user found");
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
-    }
-
-    // Return empty object
-    return product;
+    return DbService.getProduct(id);
   }
 
-  public static Product getProductBySku(String sku) {
-
-    String sql = "SELECT * FROM product where sku='" + sku + "'";
-
-    ResultSet rs = dbCon.query(sql);
-    Product product = null;
-
-    try {
-      if (rs.next()) {
-        product =
-            new Product(
-                rs.getInt("id"),
-                rs.getString("product_name"),
-                rs.getString("sku"),
-                rs.getFloat("price"),
-                rs.getString("description"),
-                rs.getInt("stock"));
-
-        return product;
-      } else {
-        System.out.println("No user found");
-      }
-    } catch (SQLException ex) {
-      System.out.println(ex.getMessage());
-    }
-
-    return product;
-  }
-
-  /**
-   * Get all products in database
-   *
-   * @return
-   */
   public static ArrayList<Product> getProducts() {
-
     // TODO FIX: Use caching layer.
-
-      String sql = "SELECT * FROM product";
-
-      ResultSet rs = dbCon.query(sql);
-      ArrayList<Product> products = new ArrayList<Product>();
-
-      try {
-        while (rs.next()) {
-          Product product =
-                  new Product(
-                          rs.getInt("id"),
-                          rs.getString("product_name"),
-                          rs.getString("sku"),
-                          rs.getFloat("price"),
-                          rs.getString("description"),
-                          rs.getInt("stock"));
-
-          products.add(product);
-        }
-      } catch (SQLException ex) {
-        System.out.println(ex.getMessage());
-      }
-      return products;
+    return DbService.getProducts();
   }
 
   public static Product createProduct(Product product) {
@@ -120,9 +30,8 @@ public class ProductController {
     // Set creation time for product.
     product.setCreatedTime(System.currentTimeMillis() / 1000L);
 
-    // Insert the product in the DB
-    int productID = dbCon.insert(
-        "INSERT INTO product(product_name, sku, price, description, stock, created_at) VALUES('"
+    String sql =
+            "INSERT INTO product(product_name, sku, price, description, stock, created_at) VALUES('"
             + product.getName()
             + "', '"
             + product.getSku()
@@ -134,10 +43,13 @@ public class ProductController {
             + product.getStock()
             + ", "
             + product.getCreatedTime()
-            + ")");
+            + ")";
+
+    // Insert the product in the DB
+    int productID = DbService.createObject(sql);
 
     if (productID != 0) {
-      //Update the productid of the product before returning
+      //Update the productId of the product before returning
       product.setId(productID);
     } else{
       // Return null if product has not been inserted into database
