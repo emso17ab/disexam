@@ -22,7 +22,7 @@ public final class SolrController {
    *
    * @return a Connection object
    */
-  public static HttpSolrClient getConnection() {
+  private static HttpSolrClient getConnection() {
 
     // Build a URL string with settings from config
     String urlString =

@@ -1,9 +1,6 @@
 package controllers;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
-
 import datasource.DbService;
 import model.*;
 import utils.Log;

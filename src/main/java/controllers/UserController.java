@@ -118,12 +118,11 @@ public class UserController {
     try {
       Claims claims = Authenticator.verifyToken(user.getToken());
 
-      if (Integer.parseInt(claims.getId()) == user.getId()) {
+      if (Integer.parseInt(claims.getId()) == user.getId() && DbService.deleteUser(user.getId())) {
 
-        if (DbService.deleteUser(user.getId())) {
-          activeUser = null;
-          return true;
-        }
+        activeUser = null;
+        return true;
+
       } return false;
     } catch (io.jsonwebtoken.SignatureException exception){ return false; }
   }

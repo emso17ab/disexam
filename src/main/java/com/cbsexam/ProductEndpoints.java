@@ -14,7 +14,6 @@ import utils.Encryption;
 @Path("product")
 public class ProductEndpoints {
 
-
   /**
    * @param idProduct
    * @return Responses

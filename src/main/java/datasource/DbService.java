@@ -8,12 +8,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import controllers.AddressController;
-import controllers.LineItemController;
-import controllers.ProductController;
 import model.*;
 import utils.Config;
-import utils.Hashing;
 
 public class DbService {
 

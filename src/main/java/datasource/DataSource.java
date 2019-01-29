@@ -3,7 +3,6 @@ package datasource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import utils.Config;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 
