@@ -20,16 +20,8 @@ public class LineItemController {
     //lineItem.getProduct().setId(ProductController.getProductBySku(lineItem.getProduct().getSku()).getId());
 
     //Making the SQL string
-    String sql =
-            "INSERT INTO line_item(product_id, order_id, price, quantity) VALUES("
-            + lineItem.getProduct().getId()
-            + ", "
-            + orderID
-            + ", "
-            + lineItem.getPrice()
-            + ", "
-            + lineItem.getQuantity()
-            + ")";
+    String sql = "INSERT INTO line_item(product_id, order_id, price, quantity) VALUES(?,?,?,?)";
+
 
     /* if (lineItemID != 0) {
       //Update the productid of the product before returning
