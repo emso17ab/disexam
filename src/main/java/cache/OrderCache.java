@@ -3,6 +3,8 @@ package cache;
 import controllers.OrderController;
 import model.Order;
 import utils.Config;
+
+import java.sql.Connection;
 import java.util.ArrayList;
 
 //TODO FIX: Build this cache and use it.
@@ -17,9 +19,11 @@ public class OrderCache {
     // Sets when the cache has been created
     private static long created;
 
-    private OrderCache() {
+    static {
         ttl = Config.getCacheTtl();
     }
+
+    private OrderCache(){}
 
     //Determine whether the cache needs updating
     private static Boolean requireUpdate() {

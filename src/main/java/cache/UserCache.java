@@ -17,9 +17,11 @@ public class UserCache {
     // Sets when the cache has been created
     private static long created;
 
-    public UserCache() {
+    static {
         ttl = Config.getCacheTtl();
     }
+
+    private UserCache() {}
 
     //Determine whether the cache needs updating
     private static Boolean requireUpdate() {

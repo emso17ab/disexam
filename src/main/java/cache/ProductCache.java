@@ -16,9 +16,11 @@ public class ProductCache {
   // Sets when the cache has been created
   private static long created;
 
-  public ProductCache() {
+  static {
     ttl = Config.getCacheTtl();
   }
+
+  private ProductCache() {}
 
   //Determine whether the cache needs updating
   private static Boolean requireUpdate() {
