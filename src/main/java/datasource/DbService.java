@@ -44,61 +44,6 @@ public class DbService {
 
   private DbService() {}
 
-  public static ResultSet query(String sql) {
-
-    ResultSet rs = null;
-
-    try {
-
-      // Get connection from pool
-      Connection con = DataSource.getConnection();
-
-      // Build the statement as a prepared statement
-      PreparedStatement stmt = con.prepareStatement(sql);
-
-      //Execute the statement to the DB
-      rs = stmt.executeQuery();
-
-      //Return the connection to the pool
-      con.close();
-
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    }
-
-    // Return the resultset which at this point will be null
-    return rs;
-  }
-
-  public static int insert(String sql) {
-
-    // Set key to 0 as a start
-    int result = 0;
-
-    try {
-
-      // Get connection from pool
-      Connection con = DataSource.getConnection();
-
-      // Build the statement up in a safe way
-      PreparedStatement stmt = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-
-      // Execute query
-      result = stmt.executeUpdate();
-
-      // Get our key back in order to update the user
-      ResultSet generatedKeys = stmt.getGeneratedKeys();
-      if (generatedKeys.next()) {
-        return generatedKeys.getInt(1);
-      }
-    } catch (SQLException e) {
-      System.out.println(e.getMessage());
-    }
-
-    // Return the resultset which at this point will be null
-    return result;
-  }
-
   //---------- ALL SERVICES BELOW THIS LINE ----------
 
   public static int createObject(String sql){
@@ -266,6 +211,9 @@ public class DbService {
         items.add(item);
         lineItemKey.close();
       }
+
+      //Transaction is committed
+      con.commit();
 
       //Save all lineItems to order
       order.setLineItems(items);
@@ -943,9 +891,6 @@ public class DbService {
     //If user was successfully updated, this will return true
     return rowsAffected == 1;
   }
-
-
-
 
 }
 

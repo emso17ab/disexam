@@ -9,6 +9,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.security.Key;
 import java.util.Date;
 
+// Inspired by https://developer.okta.com/blog/2018/10/31/jwts-with-java
 public class Authenticator {
 
     public static String createToken(int userId) {

@@ -115,6 +115,7 @@ public class UserController {
   }
 
   public static Boolean deleteUser(User user) throws io.jsonwebtoken.SignatureException {
+
     try {
       Claims claims = Authenticator.verifyToken(user.getToken());
 

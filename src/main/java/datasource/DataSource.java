@@ -6,7 +6,7 @@ import utils.Config;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-//This is our connection pool
+//This is our connection pool - inspired by https://www.baeldung.com/hikaricp
 public class DataSource {
 
     private static HikariConfig config = new HikariConfig();
